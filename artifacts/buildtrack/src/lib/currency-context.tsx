@@ -13,6 +13,7 @@ export const CURRENCIES = [
   { code: "BRL", label: "BRL", locale: "pt-BR", flag: "🇧🇷" },
   { code: "MXN", label: "MXN", locale: "es-MX", flag: "🇲🇽" },
   { code: "ZAR", label: "ZAR", locale: "en-ZA", flag: "🇿🇦" },
+  { code: "PKR", label: "PKR", locale: "ur-PK", flag: "🇵🇰" },
 ] as const;
 
 export type CurrencyCode = typeof CURRENCIES[number]["code"];
