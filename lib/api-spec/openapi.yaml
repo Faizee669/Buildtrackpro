@@ -1,15 +1,23 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: BuildTrack Construction Expense Manager API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: projects
+    description: Project management
+  - name: expenses
+    description: Expense tracking
+  - name: dashboard
+    description: Dashboard analytics
+  - name: auth
+    description: Authentication
+
 paths:
   /healthz:
     get:
@@ -24,6 +32,405 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /projects:
+    get:
+      operationId: listProjects
+      tags: [projects]
+      summary: List all projects
+      responses:
+        "200":
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+    post:
+      operationId: createProject
+      tags: [projects]
+      summary: Create a new project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectBody"
+      responses:
+        "201":
+          description: Created project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /projects/{id}:
+    get:
+      operationId: getProject
+      tags: [projects]
+      summary: Get a project by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateProject
+      tags: [projects]
+      summary: Update a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProjectBody"
+      responses:
+        "200":
+          description: Updated project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteProject
+      tags: [projects]
+      summary: Delete a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted successfully
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /expenses:
+    get:
+      operationId: listExpenses
+      tags: [expenses]
+      summary: List expenses with optional filters
+      parameters:
+        - name: projectId
+          in: query
+          required: false
+          schema:
+            type: ["integer", "null"]
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: ["string", "null"]
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: ["string", "null"]
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List of expenses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Expense"
+    post:
+      operationId: createExpense
+      tags: [expenses]
+      summary: Create a new expense
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateExpenseBody"
+      responses:
+        "201":
+          description: Created expense
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /expenses/{id}:
+    get:
+      operationId: getExpense
+      tags: [expenses]
+      summary: Get an expense by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Expense details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateExpense
+      tags: [expenses]
+      summary: Update an expense
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateExpenseBody"
+      responses:
+        "200":
+          description: Updated expense
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteExpense
+      tags: [expenses]
+      summary: Delete an expense
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted successfully
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /expenses/upload-receipt:
+    post:
+      operationId: uploadReceipt
+      tags: [expenses]
+      summary: Upload a receipt image
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Upload result with URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadReceiptResponse"
+        "400":
+          description: Upload error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /expenses/export:
+    get:
+      operationId: exportExpenses
+      tags: [expenses]
+      summary: Export expenses as CSV
+      parameters:
+        - name: projectId
+          in: query
+          required: false
+          schema:
+            type: ["integer", "null"]
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: ["string", "null"]
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: ["string", "null"]
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard statistics
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/spending-by-category:
+    get:
+      operationId: getSpendingByCategory
+      tags: [dashboard]
+      summary: Get spending grouped by category
+      responses:
+        "200":
+          description: Spending by category
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategorySpending"
+
+  /dashboard/spending-by-project:
+    get:
+      operationId: getSpendingByProject
+      tags: [dashboard]
+      summary: Get spending grouped by project
+      responses:
+        "200":
+          description: Spending by project
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProjectSpending"
+
+  /dashboard/spending-trend:
+    get:
+      operationId: getSpendingTrend
+      tags: [dashboard]
+      summary: Get spending trend over time (last 12 months)
+      responses:
+        "200":
+          description: Spending trend
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SpendingTrend"
+
+  /dashboard/recent-expenses:
+    get:
+      operationId: getRecentExpenses
+      tags: [dashboard]
+      summary: Get the 5 most recent expenses
+      responses:
+        "200":
+          description: Recent expenses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Expense"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +441,239 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: ["string", "null"]
+        profileImage:
+          type: ["string", "null"]
+        roles:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - roles
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        budget:
+          type: number
+        startDate:
+          type: string
+        status:
+          type: string
+          enum: [active, completed, on_hold]
+        totalExpenses:
+          type: number
+        remainingBudget:
+          type: number
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - budget
+        - startDate
+        - status
+        - totalExpenses
+        - remainingBudget
+        - createdAt
+
+    CreateProjectBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        budget:
+          type: number
+        startDate:
+          type: string
+        status:
+          type: string
+          enum: [active, completed, on_hold]
+      required:
+        - name
+        - budget
+        - startDate
+        - status
+
+    UpdateProjectBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        budget:
+          type: number
+        startDate:
+          type: string
+        status:
+          type: string
+          enum: [active, completed, on_hold]
+
+    Expense:
+      type: object
+      properties:
+        id:
+          type: integer
+        projectId:
+          type: integer
+        projectName:
+          type: ["string", "null"]
+        category:
+          type: string
+          enum: [Materials, Labor, Fuel, Equipment Rental, Tools, Permits, Misc]
+        amount:
+          type: number
+        vendor:
+          type: ["string", "null"]
+        date:
+          type: string
+        notes:
+          type: ["string", "null"]
+        receiptUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - projectId
+        - category
+        - amount
+        - date
+        - createdAt
+
+    CreateExpenseBody:
+      type: object
+      properties:
+        projectId:
+          type: integer
+        category:
+          type: string
+          enum: [Materials, Labor, Fuel, Equipment Rental, Tools, Permits, Misc]
+        amount:
+          type: number
+        vendor:
+          type: ["string", "null"]
+        date:
+          type: string
+        notes:
+          type: ["string", "null"]
+        receiptUrl:
+          type: ["string", "null"]
+      required:
+        - projectId
+        - category
+        - amount
+        - date
+
+    UpdateExpenseBody:
+      type: object
+      properties:
+        projectId:
+          type: integer
+        category:
+          type: string
+          enum: [Materials, Labor, Fuel, Equipment Rental, Tools, Permits, Misc]
+        amount:
+          type: number
+        vendor:
+          type: ["string", "null"]
+        date:
+          type: string
+        notes:
+          type: ["string", "null"]
+        receiptUrl:
+          type: ["string", "null"]
+
+    UploadReceiptResponse:
+      type: object
+      properties:
+        url:
+          type: string
+      required:
+        - url
+
+    DashboardStats:
+      type: object
+      properties:
+        totalBudget:
+          type: number
+        totalSpent:
+          type: number
+        remainingBudget:
+          type: number
+        spentThisMonth:
+          type: number
+        activeProjects:
+          type: integer
+        totalExpenses:
+          type: integer
+      required:
+        - totalBudget
+        - totalSpent
+        - remainingBudget
+        - spentThisMonth
+        - activeProjects
+        - totalExpenses
+
+    CategorySpending:
+      type: object
+      properties:
+        category:
+          type: string
+        amount:
+          type: number
+      required:
+        - category
+        - amount
+
+    ProjectSpending:
+      type: object
+      properties:
+        projectId:
+          type: integer
+        projectName:
+          type: string
+        amount:
+          type: number
+        budget:
+          type: number
+      required:
+        - projectId
+        - projectName
+        - amount
+        - budget
+
+    SpendingTrend:
+      type: object
+      properties:
+        month:
+          type: string
+        amount:
+          type: number
+      required:
+        - month
+        - amount

@@ -1,0 +1,198 @@
+import { useState } from "react"
+import { useListExpenses, useListProjects, useDeleteExpense, getExportExpensesUrl } from "@workspace/api-client-react"
+import { formatCurrency, CATEGORY_COLORS } from "@/lib/utils"
+import { format, parseISO } from "date-fns"
+import { Download, Filter, Receipt, Trash2, Edit, Loader2, Image as ImageIcon } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useQueryClient } from "@tanstack/react-query"
+import { getListExpensesQueryKey } from "@workspace/api-client-react"
+import { useToast } from "@/hooks/use-toast"
+import { Link } from "wouter"
+
+const CATEGORIES = ["Materials", "Labor", "Fuel", "Equipment Rental", "Tools", "Permits", "Misc"]
+
+export default function Expenses() {
+  const [projectId, setProjectId] = useState<number | null>(null);
+  const [category, setCategory] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+
+  const params = {
+    ...(projectId ? { projectId } : {}),
+    ...(category && category !== 'all' ? { category } : {}),
+    ...(startDate ? { startDate } : {}),
+    ...(endDate ? { endDate } : {})
+  };
+
+  const { data: expenses, isLoading } = useListExpenses(params);
+  const { data: projects } = useListProjects();
+  
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const deleteMutation = useDeleteExpense({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListExpensesQueryKey() });
+        toast({ title: "Expense deleted" });
+      }
+    }
+  });
+
+  const handleExport = () => {
+    window.open(getExportExpensesUrl(params), '_blank');
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Expense Ledger</h2>
+          <p className="text-muted-foreground">View, filter, and export all transactions</p>
+        </div>
+        <div className="flex gap-2 w-full md:w-auto">
+          <Button variant="outline" className="hover-elevate shadow-sm w-full md:w-auto" onClick={handleExport}>
+            <Download className="w-4 h-4 mr-2" /> Export CSV
+          </Button>
+          <Link href="/add-expense">
+            <Button className="hover-elevate active-elevate-2 shadow-sm w-full md:w-auto">
+              Add Expense
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-card p-4 rounded-xl border border-border shadow-sm flex flex-col md:flex-row gap-4 items-end">
+        <div className="flex items-center gap-2 text-muted-foreground mr-2 font-medium">
+          <Filter className="w-4 h-4" /> Filters:
+        </div>
+        
+        <div className="w-full md:w-48">
+          <Select value={projectId?.toString() || "all"} onValueChange={(v) => setProjectId(v === "all" ? null : parseInt(v))}>
+            <SelectTrigger><SelectValue placeholder="All Projects" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Projects</SelectItem>
+              {projects?.map(p => (
+                <SelectItem key={p.id} value={p.id.toString()}>{p.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="w-full md:w-48">
+          <Select value={category || "all"} onValueChange={(v) => setCategory(v === "all" ? null : v)}>
+            <SelectTrigger><SelectValue placeholder="All Categories" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {CATEGORIES.map(c => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex gap-2 w-full md:w-auto">
+          <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full md:w-36" title="Start Date" />
+          <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full md:w-36" title="End Date" />
+        </div>
+        
+        {(projectId || category || startDate || endDate) && (
+          <Button variant="ghost" onClick={() => {
+            setProjectId(null); setCategory(null); setStartDate(""); setEndDate("");
+          }} className="text-muted-foreground hover:text-foreground">
+            Clear
+          </Button>
+        )}
+      </div>
+
+      {/* Table */}
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        <Table>
+          <TableHeader className="bg-secondary/5">
+            <TableRow>
+              <TableHead>Date</TableHead>
+              <TableHead>Vendor</TableHead>
+              <TableHead>Project</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
+              <TableHead className="text-center">Receipt</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="h-32 text-center">
+                  <Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" />
+                </TableCell>
+              </TableRow>
+            ) : expenses?.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                  <div className="flex flex-col items-center justify-center">
+                    <Receipt className="w-8 h-8 mb-2 opacity-20" />
+                    <span>No expenses found matching these filters.</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              expenses?.map((expense) => (
+                <TableRow key={expense.id} className="hover:bg-muted/30 transition-colors">
+                  <TableCell className="font-medium whitespace-nowrap">
+                    {format(parseISO(expense.date), 'MMM d, yyyy')}
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-semibold text-foreground">{expense.vendor || 'N/A'}</div>
+                    {expense.notes && <div className="text-xs text-muted-foreground truncate max-w-[200px]">{expense.notes}</div>}
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/projects/${expense.projectId}`} className="hover:underline text-primary">
+                      {expense.projectName}
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border" 
+                          style={{
+                            backgroundColor: `color-mix(in srgb, ${CATEGORY_COLORS[expense.category]} 10%, transparent)`,
+                            color: CATEGORY_COLORS[expense.category],
+                            borderColor: `color-mix(in srgb, ${CATEGORY_COLORS[expense.category]} 20%, transparent)`
+                          }}>
+                      {expense.category}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right font-display font-bold">
+                    {formatCurrency(expense.amount)}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {expense.receiptUrl ? (
+                      <a href={expense.receiptUrl} target="_blank" rel="noreferrer" className="inline-block p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-colors" title="View Receipt">
+                        <ImageIcon className="w-4 h-4" />
+                      </a>
+                    ) : (
+                      <span className="text-muted-foreground/30">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => {
+                        if (confirm("Delete this expense?")) {
+                          deleteMutation.mutate({ id: expense.id });
+                        }
+                      }}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  )
+}
