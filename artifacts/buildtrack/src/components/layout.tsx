@@ -56,7 +56,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <p className="text-muted-foreground text-sm">Construction Expense Manager</p>
           </div>
           <p className="text-center text-sm text-muted-foreground">Track project expenses, receipts, and budgets across all your job sites.</p>
-          <a href="/api/auth/login" className="w-full">
+          <a href="/api/auth/login" target="_top" className="w-full">
             <button className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-6 rounded-md shadow-lg transition-all active:scale-[0.98]">
               Sign in with Replit
             </button>
@@ -117,12 +117,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <span className="text-sm font-bold text-sidebar-foreground truncate">{user.name || 'User'}</span>
                 <span className="text-xs text-sidebar-foreground/50 truncate">Contractor</span>
               </div>
-              <a href="/api/auth/logout" className="text-sidebar-foreground/50 hover:text-destructive transition-colors p-2 rounded-md hover:bg-sidebar-accent">
+              <a href="/api/auth/logout" target="_top" className="text-sidebar-foreground/50 hover:text-destructive transition-colors p-2 rounded-md hover:bg-sidebar-accent">
                 <LogOut className="w-4 h-4" />
               </a>
             </div>
             <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center">
-               <a href="/api/auth/logout" className="text-sidebar-foreground/50 hover:text-destructive transition-colors p-2 rounded-md hover:bg-sidebar-accent">
+               <a href="/api/auth/logout" target="_top" className="text-sidebar-foreground/50 hover:text-destructive transition-colors p-2 rounded-md hover:bg-sidebar-accent">
                 <LogOut className="w-5 h-5" />
               </a>
             </div>
