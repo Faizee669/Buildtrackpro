@@ -6,11 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface User {
-  id: string;
-  /** @nullable */
-  name?: string | null;
-  /** @nullable */
-  profileImage?: string | null;
-  roles: string[];
-}
+export type HandleBrowserLoginCallbackParams = {
+  code?: string;
+  state?: string;
+  iss?: string;
+};

@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react"
 import { Link, useLocation } from "wouter"
 import { 
   SidebarProvider, 
@@ -13,7 +12,7 @@ import {
   SidebarFooter
 } from "@/components/ui/sidebar"
 import { LayoutDashboard, HardHat, Receipt, PlusCircle, LogOut, Loader2 } from "lucide-react"
-import { useGetMe } from "@workspace/api-client-react"
+import { useAuth } from "@workspace/replit-auth-web"
 
 const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -23,9 +22,7 @@ const navItems = [
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const { data: user, isLoading, isError } = useGetMe({
-    query: { retry: false }
-  });
+  const { user, isLoading, isAuthenticated, login, logout } = useAuth();
 
   if (isLoading) {
     return (
@@ -43,7 +40,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (isError || !user) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-30 bg-cover bg-center" style={{ backgroundImage: `url(${import.meta.env.BASE_URL}images/auth-bg.png)` }}></div>
@@ -56,15 +53,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <p className="text-muted-foreground text-sm">Construction Expense Manager</p>
           </div>
           <p className="text-center text-sm text-muted-foreground">Track project expenses, receipts, and budgets across all your job sites.</p>
-          <a href="/api/auth/login" target="_top" className="w-full">
-            <button className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-6 rounded-md shadow-lg transition-all active:scale-[0.98]">
-              Sign in with Replit
-            </button>
-          </a>
+          <button
+            onClick={login}
+            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-6 rounded-md shadow-lg transition-all active:scale-[0.98]"
+          >
+            Log in
+          </button>
         </div>
       </div>
     );
   }
+
+  const displayName = user?.firstName
+    ? `${user.firstName}${user.lastName ? " " + user.lastName : ""}`
+    : (user?.email ?? "User");
+
+  const initials = user?.firstName?.[0] ?? user?.email?.[0]?.toUpperCase() ?? "U";
 
   return (
     <SidebarProvider style={{ "--sidebar-width": "16rem", "--sidebar-width-icon": "4rem" } as React.CSSProperties}>
@@ -111,20 +115,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <SidebarFooter className="border-t border-sidebar-border p-4 bg-sidebar">
             <div className="flex items-center gap-3 group-data-[collapsible=icon]:hidden">
               <div className="w-10 h-10 rounded bg-secondary flex items-center justify-center flex-shrink-0 text-secondary-foreground font-bold border border-sidebar-border">
-                {user.name?.[0] || 'U'}
+                {user?.profileImageUrl ? (
+                  <img src={user.profileImageUrl} alt={displayName} className="w-full h-full rounded object-cover" />
+                ) : initials}
               </div>
               <div className="flex flex-col flex-1 truncate">
-                <span className="text-sm font-bold text-sidebar-foreground truncate">{user.name || 'User'}</span>
+                <span className="text-sm font-bold text-sidebar-foreground truncate">{displayName}</span>
                 <span className="text-xs text-sidebar-foreground/50 truncate">Contractor</span>
               </div>
-              <a href="/api/auth/logout" target="_top" className="text-sidebar-foreground/50 hover:text-destructive transition-colors p-2 rounded-md hover:bg-sidebar-accent">
+              <button onClick={logout} className="text-sidebar-foreground/50 hover:text-destructive transition-colors p-2 rounded-md hover:bg-sidebar-accent">
                 <LogOut className="w-4 h-4" />
-              </a>
+              </button>
             </div>
             <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center">
-               <a href="/api/auth/logout" target="_top" className="text-sidebar-foreground/50 hover:text-destructive transition-colors p-2 rounded-md hover:bg-sidebar-accent">
+              <button onClick={logout} className="text-sidebar-foreground/50 hover:text-destructive transition-colors p-2 rounded-md hover:bg-sidebar-accent">
                 <LogOut className="w-5 h-5" />
-              </a>
+              </button>
             </div>
           </SidebarFooter>
         </Sidebar>
@@ -138,7 +144,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </h1>
             </div>
             <div className="flex items-center gap-4">
-               {/* Could add quick action icons or notifications here */}
                <Link href="/add-expense" className="sm:hidden">
                  <button className="bg-primary text-primary-foreground p-2 rounded-md shadow-md">
                    <PlusCircle className="w-5 h-5" />

@@ -18,6 +18,7 @@ BuildTrack – Construction Expense Manager. A full-stack web app for tracking c
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
 - **File uploads**: multer
+- **Authentication**: Replit OIDC (openid-client, session-based with PostgreSQL)
 
 ## Structure
 
@@ -30,7 +31,8 @@ artifacts-monorepo/
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
 │   ├── api-client-react/   # Generated React Query hooks
 │   ├── api-zod/            # Generated Zod schemas from OpenAPI
-│   └── db/                 # Drizzle ORM schema + DB connection
+│   ├── db/                 # Drizzle ORM schema + DB connection
+│   └── replit-auth-web/    # useAuth() hook for browser (fetches /api/auth/user)
 ├── scripts/
 ├── pnpm-workspace.yaml
 ├── tsconfig.base.json
@@ -46,21 +48,25 @@ artifacts-monorepo/
 - **Filters**: Filter expenses by project, category, date range
 - **CSV Export**: Export filtered expenses to CSV
 - **Receipt Upload**: Upload receipt images via multer, stored in uploads/receipts/
-- **Authentication**: Replit Auth (X-Replit-User-* headers)
+- **Authentication**: Replit OIDC via `openid-client`; sessions stored in `sessions` table
 
 ## Database Schema
 
-- `users` - Replit user ID, name, profile image, role
-- `projects` - name, description, budget, start_date, status
-- `expenses` - project_id, category, amount, vendor, date, notes, receipt_url
+- `users` — Replit user (id varchar, email, first_name, last_name, profile_image_url, timestamps)
+- `sessions` — OIDC session storage (sid, sess jsonb, expire)
+- `projects` — name, description, budget, start_date, status
+- `expenses` — project_id, category, amount, vendor, date, notes, receipt_url
 
 ## API Routes
 
 All routes are under `/api`:
 
-- `GET /auth/me` — Current user (from Replit Auth headers)
-- `GET /auth/login` — Redirect to Replit Auth
-- `GET /auth/logout` — Logout redirect
+- `GET /auth/user` — Current user from session (returns `{user: AuthUser|null}`)
+- `GET /login` — Start OIDC login flow (redirects to Replit OIDC)
+- `GET /callback` — OIDC callback (creates session, redirects to app)
+- `GET /logout` — Clear session and end OIDC session
+- `POST /mobile-auth/token-exchange` — Mobile OIDC token exchange
+- `POST /mobile-auth/logout` — Mobile session logout
 - `GET/POST /projects` — List/create projects
 - `GET/PATCH/DELETE /projects/:id` — Get/update/delete project
 - `GET/POST /expenses` — List/create expenses (supports filters: projectId, category, startDate, endDate)
@@ -72,6 +78,14 @@ All routes are under `/api`:
 - `GET /dashboard/spending-by-project` — Project spending vs budget
 - `GET /dashboard/spending-trend` — Monthly trend (last 12 months)
 - `GET /dashboard/recent-expenses` — 5 most recent expenses
+
+## Auth Flow
+
+- `useAuth()` from `@workspace/replit-auth-web` fetches `/api/auth/user` with `credentials: "include"`
+- `login()` redirects to `/api/login?returnTo=<base>` (full page nav, not iframe)
+- `logout()` redirects to `/api/logout`
+- Sessions stored in PostgreSQL `sessions` table, cookie name `sid`
+- Auth middleware (`authMiddleware.ts`) attaches `req.user` from session on every request
 
 ## Expense Categories
 
