@@ -29,7 +29,7 @@ function CurrencySelector() {
       <select
         value={currency}
         onChange={e => setCurrency(e.target.value as CurrencyCode)}
-        className="appearance-none pl-7 pr-6 py-1.5 text-xs font-semibold rounded-md border border-border bg-secondary/50 text-foreground cursor-pointer hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
+        className="appearance-none pl-7 pr-6 py-1.5 text-xs font-semibold rounded-md border border-border bg-secondary/50 text-foreground cursor-pointer hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
         title="Select currency"
       >
         {CURRENCIES.map(c => (
