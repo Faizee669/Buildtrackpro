@@ -13,12 +13,37 @@ import {
 } from "@/components/ui/sidebar"
 import { LayoutDashboard, HardHat, Receipt, PlusCircle, LogOut, Loader2 } from "lucide-react"
 import { useAuth } from "@workspace/replit-auth-web"
+import { useCurrency, CURRENCIES, type CurrencyCode } from "@/lib/currency-context"
 
 const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Projects", url: "/projects", icon: HardHat },
   { title: "Expenses", url: "/expenses", icon: Receipt },
 ]
+
+function CurrencySelector() {
+  const { currency, setCurrency } = useCurrency();
+  const current = CURRENCIES.find(c => c.code === currency)!;
+  return (
+    <div className="relative">
+      <select
+        value={currency}
+        onChange={e => setCurrency(e.target.value as CurrencyCode)}
+        className="appearance-none pl-7 pr-6 py-1.5 text-xs font-semibold rounded-md border border-border bg-secondary/50 text-foreground cursor-pointer hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
+        title="Select currency"
+      >
+        {CURRENCIES.map(c => (
+          <option key={c.code} value={c.code}>
+            {c.flag} {c.code}
+          </option>
+        ))}
+      </select>
+      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs pointer-events-none">
+        {current.flag}
+      </span>
+    </div>
+  );
+}
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -143,12 +168,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 {navItems.find(i => location.startsWith(i.url))?.title || 'Overview'}
               </h1>
             </div>
-            <div className="flex items-center gap-4">
-               <Link href="/add-expense" className="sm:hidden">
-                 <button className="bg-primary text-primary-foreground p-2 rounded-md shadow-md">
-                   <PlusCircle className="w-5 h-5" />
-                 </button>
-               </Link>
+            <div className="flex items-center gap-3">
+              <CurrencySelector />
+              <Link href="/add-expense" className="sm:hidden">
+                <button className="bg-primary text-primary-foreground p-2 rounded-md shadow-md">
+                  <PlusCircle className="w-5 h-5" />
+                </button>
+              </Link>
             </div>
           </header>
           <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto w-full">

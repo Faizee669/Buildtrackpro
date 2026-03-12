@@ -1,5 +1,6 @@
 import { useGetDashboardStats, useGetSpendingByCategory, useGetSpendingByProject, useGetSpendingTrend, useGetRecentExpenses, useGetTopVendors, useGetAiInsights } from "@workspace/api-client-react"
-import { formatCurrency, CATEGORY_COLORS } from "@/lib/utils"
+import { CATEGORY_COLORS } from "@/lib/utils"
+import { useCurrency } from "@/lib/currency-context"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, CartesianGrid, Legend } from "recharts"
 import { Receipt, HardHat, TrendingDown, DollarSign, ArrowRight, Loader2, Wallet, Sparkles, RefreshCw, AlertTriangle, Lightbulb, Info } from "lucide-react"
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { format, parseISO } from "date-fns"
 
 export default function Dashboard() {
+  const { fmt } = useCurrency();
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
   const { data: categorySpending, isLoading: catLoading } = useGetSpendingByCategory();
   const { data: projectSpending, isLoading: projLoading } = useGetSpendingByProject();
@@ -57,14 +59,14 @@ export default function Dashboard() {
             <div className="flex justify-between items-start">
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total Spent</p>
-                <p className="text-3xl font-display font-bold text-foreground">{formatCurrency(stats.totalSpent)}</p>
+                <p className="text-3xl font-display font-bold text-foreground">{fmt(stats.totalSpent)}</p>
               </div>
               <div className="p-3 bg-primary/10 text-primary rounded-md">
                 <DollarSign className="w-5 h-5" />
               </div>
             </div>
             <div className="mt-4 flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">of {formatCurrency(stats.totalBudget)} budget</span>
+              <span className="text-muted-foreground">of {fmt(stats.totalBudget)} budget</span>
             </div>
           </CardContent>
         </Card>
@@ -74,7 +76,7 @@ export default function Dashboard() {
             <div className="flex justify-between items-start">
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Remaining</p>
-                <p className="text-3xl font-display font-bold text-foreground">{formatCurrency(stats.remainingBudget)}</p>
+                <p className="text-3xl font-display font-bold text-foreground">{fmt(stats.remainingBudget)}</p>
               </div>
               <div className="p-3 bg-secondary/10 text-secondary-foreground rounded-md">
                 <Wallet className="w-5 h-5" />
@@ -99,7 +101,7 @@ export default function Dashboard() {
             <div className="flex justify-between items-start">
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Spent This Month</p>
-                <p className="text-3xl font-display font-bold text-foreground">{formatCurrency(stats.spentThisMonth)}</p>
+                <p className="text-3xl font-display font-bold text-foreground">{fmt(stats.spentThisMonth)}</p>
               </div>
               <div className="p-3 bg-accent/20 text-accent-foreground rounded-md">
                 <TrendingDown className="w-5 h-5" />
@@ -211,7 +213,7 @@ export default function Dashboard() {
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value: number) => formatCurrency(value)}
+                      formatter={(value: number) => fmt(value)}
                       contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '0.35rem' }}
                     />
                     <Legend 
@@ -255,7 +257,7 @@ export default function Dashboard() {
                       tickFormatter={(val) => `$${val/1000}k`}
                     />
                     <Tooltip 
-                      formatter={(value: number) => [formatCurrency(value), 'Spent']}
+                      formatter={(value: number) => [fmt(value), 'Spent']}
                       contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '0.35rem' }}
                     />
                     <Line 
@@ -291,7 +293,7 @@ export default function Dashboard() {
                     <XAxis type="number" tickFormatter={(val) => `$${val/1000}k`} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
                     <YAxis dataKey="projectName" type="category" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--foreground))', fontSize: 11, fontWeight: 500 }} width={110} />
                     <Tooltip 
-                      formatter={(value: number) => formatCurrency(value)}
+                      formatter={(value: number) => fmt(value)}
                       cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
                       contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '0.35rem' }}
                     />
@@ -324,7 +326,7 @@ export default function Dashboard() {
                     <XAxis type="number" tickFormatter={(val) => `$${val/1000}k`} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
                     <YAxis dataKey="vendor" type="category" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--foreground))', fontSize: 11, fontWeight: 500 }} width={110} />
                     <Tooltip 
-                      formatter={(value: number, name: string) => name === "amount" ? formatCurrency(value) : value}
+                      formatter={(value: number, name: string) => name === "amount" ? fmt(value) : value}
                       contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '0.35rem' }}
                     />
                     <Bar dataKey="amount" name="Spent" fill="hsl(var(--accent))" radius={[0, 4, 4, 0]} maxBarSize={20} />
@@ -368,7 +370,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-foreground">{formatCurrency(expense.amount)}</p>
+                    <p className="font-bold text-foreground">{fmt(expense.amount)}</p>
                     <p className="text-xs px-2 py-0.5 rounded-full inline-block mt-1" style={{ 
                       backgroundColor: `color-mix(in srgb, ${CATEGORY_COLORS[expense.category]} 10%, transparent)`,
                       color: CATEGORY_COLORS[expense.category] 

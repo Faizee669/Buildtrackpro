@@ -1,6 +1,7 @@
 import { useRoute, Link } from "wouter"
 import { useGetProject, useListExpenses, useUpdateProject, useDeleteProject } from "@workspace/api-client-react"
-import { formatCurrency, CATEGORY_COLORS } from "@/lib/utils"
+import { CATEGORY_COLORS } from "@/lib/utils"
+import { useCurrency } from "@/lib/currency-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { format, parseISO } from "date-fns"
 import { ArrowLeft, Edit, Trash2, Calendar, Receipt, AlertTriangle, Loader2 } from "lucide-react"
@@ -34,6 +35,7 @@ const formSchema = z.object({
 });
 
 export default function ProjectDetails() {
+  const { fmt } = useCurrency();
   const [, params] = useRoute("/projects/:id");
   const projectId = parseInt(params?.id || "0", 10);
   
@@ -176,16 +178,16 @@ export default function ProjectDetails() {
             <div className="grid grid-cols-3 gap-6 mb-8">
               <div>
                 <p className="text-sm font-semibold text-muted-foreground uppercase mb-1">Total Budget</p>
-                <p className="text-3xl font-display font-bold text-foreground">{formatCurrency(project.budget)}</p>
+                <p className="text-3xl font-display font-bold text-foreground">{fmt(project.budget)}</p>
               </div>
               <div>
                 <p className="text-sm font-semibold text-muted-foreground uppercase mb-1">Spent</p>
-                <p className="text-3xl font-display font-bold text-foreground">{formatCurrency(project.totalExpenses)}</p>
+                <p className="text-3xl font-display font-bold text-foreground">{fmt(project.totalExpenses)}</p>
               </div>
               <div>
                 <p className="text-sm font-semibold text-muted-foreground uppercase mb-1">Remaining</p>
                 <p className={`text-3xl font-display font-bold ${isOverBudget ? 'text-destructive' : 'text-primary'}`}>
-                  {formatCurrency(project.remainingBudget)}
+                  {fmt(project.remainingBudget)}
                 </p>
               </div>
             </div>
@@ -235,7 +237,7 @@ export default function ProjectDetails() {
                         ))}
                       </Pie>
                       <Tooltip 
-                        formatter={(value: number) => formatCurrency(value)}
+                        formatter={(value: number) => fmt(value)}
                         contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '0.35rem' }}
                       />
                     </PieChart>
@@ -252,7 +254,7 @@ export default function ProjectDetails() {
                      <div className="w-3 h-3 rounded-full" style={{backgroundColor: CATEGORY_COLORS[d.name]}}></div>
                      <span>{d.name}</span>
                    </div>
-                   <span className="font-medium">{formatCurrency(d.value)}</span>
+                   <span className="font-medium">{fmt(d.value)}</span>
                  </div>
               ))}
             </div>
@@ -276,7 +278,7 @@ export default function ProjectDetails() {
                   </div>
                 </div>
                 <div className="flex items-center gap-4 sm:flex-col sm:items-end sm:gap-1">
-                  <span className="text-lg font-display font-bold">{formatCurrency(expense.amount)}</span>
+                  <span className="text-lg font-display font-bold">{fmt(expense.amount)}</span>
                   <Badge variant="outline" style={{ color: CATEGORY_COLORS[expense.category], borderColor: CATEGORY_COLORS[expense.category] }}>
                     {expense.category}
                   </Badge>

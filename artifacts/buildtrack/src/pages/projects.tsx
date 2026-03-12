@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useListProjects, useCreateProject } from "@workspace/api-client-react"
-import { formatCurrency } from "@/lib/utils"
+import { useCurrency } from "@/lib/currency-context"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { format, parseISO } from "date-fns"
 import { HardHat, Plus, MoreVertical, Calendar, TrendingUp } from "lucide-react"
@@ -32,6 +32,7 @@ const formSchema = z.object({
 });
 
 export default function Projects() {
+  const { fmt } = useCurrency();
   const { data: projects, isLoading } = useListProjects();
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -181,12 +182,12 @@ export default function Projects() {
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
                         <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Budget</p>
-                        <p className="font-display font-bold text-foreground">{formatCurrency(project.budget)}</p>
+                        <p className="font-display font-bold text-foreground">{fmt(project.budget)}</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Spent</p>
                         <p className={`font-display font-bold ${isOverBudget ? 'text-destructive' : 'text-foreground'}`}>
-                          {formatCurrency(project.totalExpenses)}
+                          {fmt(project.totalExpenses)}
                         </p>
                       </div>
                     </div>

@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react"
 import { useListExpenses, useListProjects, useDeleteExpense, getExportExpensesUrl } from "@workspace/api-client-react"
-import { formatCurrency, CATEGORY_COLORS } from "@/lib/utils"
+import { CATEGORY_COLORS } from "@/lib/utils"
+import { useCurrency } from "@/lib/currency-context"
 import { format, parseISO } from "date-fns"
 import { Download, Filter, Receipt, Trash2, Loader2, Image as ImageIcon, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -15,6 +16,7 @@ import { Link } from "wouter"
 const CATEGORIES = ["Materials", "Labor", "Fuel", "Equipment Rental", "Tools", "Permits", "Misc"]
 
 export default function Expenses() {
+  const { fmt } = useCurrency();
   const [projectId, setProjectId] = useState<number | null>(null);
   const [category, setCategory] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string>("");
@@ -203,7 +205,7 @@ export default function Expenses() {
                     </span>
                   </TableCell>
                   <TableCell className="text-right font-display font-bold">
-                    {formatCurrency(expense.amount)}
+                    {fmt(expense.amount)}
                   </TableCell>
                   <TableCell className="text-center">
                     {expense.receiptUrl ? (
