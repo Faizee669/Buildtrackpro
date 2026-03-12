@@ -6,6 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./aiInsight";
+export * from "./aiInsightsResponse";
+export * from "./aiInsightType";
 export * from "./authorizationSessionHeaderParameter";
 export * from "./authUser";
 export * from "./authUserEnvelope";
@@ -37,3 +40,4 @@ export * from "./updateProjectBody";
 export * from "./updateProjectBodyStatus";
 export * from "./uploadReceiptBody";
 export * from "./uploadReceiptResponse";
+export * from "./vendorSpending";

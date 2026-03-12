@@ -101,6 +101,26 @@ router.get("/dashboard/spending-trend", async (_req, res): Promise<void> => {
   res.json(results.map(r => ({ month: r.month, amount: parseFloat(r.amount) })));
 });
 
+// GET /dashboard/top-vendors
+router.get("/dashboard/top-vendors", async (_req, res): Promise<void> => {
+  const results = await db
+    .select({
+      vendor: sql<string>`COALESCE(${expensesTable.vendor}, 'Unknown')`,
+      amount: sql<string>`COALESCE(SUM(${expensesTable.amount}), 0)`,
+      count: sql<string>`COUNT(*)`,
+    })
+    .from(expensesTable)
+    .groupBy(sql`COALESCE(${expensesTable.vendor}, 'Unknown')`)
+    .orderBy(sql`SUM(${expensesTable.amount}) DESC`)
+    .limit(8);
+
+  res.json(results.map(r => ({
+    vendor: r.vendor,
+    amount: parseFloat(r.amount),
+    count: parseInt(r.count),
+  })));
+});
+
 // GET /dashboard/recent-expenses
 router.get("/dashboard/recent-expenses", async (_req, res): Promise<void> => {
   const results = await db

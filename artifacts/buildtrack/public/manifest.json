@@ -1,0 +1,25 @@
+{
+  "name": "BuildTrack Pro",
+  "short_name": "BuildTrack",
+  "description": "Construction Expense Manager — Track project budgets, expenses, and receipts on the job site.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#f97316",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/images/opengraph.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/opengraph.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["business", "finance", "productivity"]
+}

@@ -223,6 +223,30 @@ export interface SpendingTrend {
   amount: number;
 }
 
+export interface VendorSpending {
+  vendor: string;
+  amount: number;
+  count: number;
+}
+
+export type AiInsightType = (typeof AiInsightType)[keyof typeof AiInsightType];
+
+export const AiInsightType = {
+  info: "info",
+  warning: "warning",
+  tip: "tip",
+} as const;
+
+export interface AiInsight {
+  text: string;
+  type: AiInsightType;
+}
+
+export interface AiInsightsResponse {
+  insights: AiInsight[];
+  generatedAt: string;
+}
+
 export type AuthorizationSessionHeaderParameter = string;
 
 export type BeginBrowserLoginParams = {

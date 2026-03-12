@@ -392,3 +392,26 @@ export const GetRecentExpensesResponseItem = zod.object({
 export const GetRecentExpensesResponse = zod.array(
   GetRecentExpensesResponseItem,
 );
+
+/**
+ * @summary Get top vendors by spending
+ */
+export const GetTopVendorsResponseItem = zod.object({
+  vendor: zod.string(),
+  amount: zod.number(),
+  count: zod.number(),
+});
+export const GetTopVendorsResponse = zod.array(GetTopVendorsResponseItem);
+
+/**
+ * @summary Get AI-generated cost insights
+ */
+export const GetAiInsightsResponse = zod.object({
+  insights: zod.array(
+    zod.object({
+      text: zod.string(),
+      type: zod.enum(["info", "warning", "tip"]),
+    }),
+  ),
+  generatedAt: zod.string(),
+});

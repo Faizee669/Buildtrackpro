@@ -17,6 +17,7 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  AiInsightsResponse,
   AuthUserEnvelope,
   BeginBrowserLoginParams,
   CategorySpending,
@@ -40,6 +41,7 @@ import type {
   UpdateProjectBody,
   UploadReceiptBody,
   UploadReceiptResponse,
+  VendorSpending,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -2058,6 +2060,156 @@ export function useGetRecentExpenses<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetRecentExpensesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get top vendors by spending
+ */
+export const getGetTopVendorsUrl = () => {
+  return `/api/dashboard/top-vendors`;
+};
+
+export const getTopVendors = async (
+  options?: RequestInit,
+): Promise<VendorSpending[]> => {
+  return customFetch<VendorSpending[]>(getGetTopVendorsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTopVendorsQueryKey = () => {
+  return [`/api/dashboard/top-vendors`] as const;
+};
+
+export const getGetTopVendorsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTopVendors>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTopVendors>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetTopVendorsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getTopVendors>>> = ({
+    signal,
+  }) => getTopVendors({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTopVendors>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetTopVendorsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTopVendors>>
+>;
+export type GetTopVendorsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get top vendors by spending
+ */
+
+export function useGetTopVendors<
+  TData = Awaited<ReturnType<typeof getTopVendors>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTopVendors>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTopVendorsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get AI-generated cost insights
+ */
+export const getGetAiInsightsUrl = () => {
+  return `/api/ai-insights`;
+};
+
+export const getAiInsights = async (
+  options?: RequestInit,
+): Promise<AiInsightsResponse> => {
+  return customFetch<AiInsightsResponse>(getGetAiInsightsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAiInsightsQueryKey = () => {
+  return [`/api/ai-insights`] as const;
+};
+
+export const getGetAiInsightsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAiInsights>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAiInsights>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAiInsightsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAiInsights>>> = ({
+    signal,
+  }) => getAiInsights({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAiInsights>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAiInsightsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAiInsights>>
+>;
+export type GetAiInsightsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get AI-generated cost insights
+ */
+
+export function useGetAiInsights<
+  TData = Awaited<ReturnType<typeof getAiInsights>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAiInsights>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAiInsightsQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

@@ -1,7 +1,7 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useLocation } from "wouter"
 import { useCreateExpense, useListProjects, useUploadReceipt } from "@workspace/api-client-react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -13,7 +13,7 @@ import * as z from "zod"
 import { useQueryClient } from "@tanstack/react-query"
 import { getListExpensesQueryKey, getGetDashboardStatsQueryKey } from "@workspace/api-client-react"
 import { useToast } from "@/hooks/use-toast"
-import { UploadCloud, Receipt, Loader2, ArrowLeft } from "lucide-react"
+import { UploadCloud, Receipt, Loader2, ArrowLeft, Scan, CheckCircle2 } from "lucide-react"
 import { Link } from "wouter"
 
 const CATEGORIES = ["Materials", "Labor", "Fuel", "Equipment Rental", "Tools", "Permits", "Misc"] as const;
@@ -32,7 +32,10 @@ export default function ExpenseFormPage() {
   const [, setLocation] = useLocation();
   const { data: projects, isLoading: projLoading } = useListProjects();
   const [uploading, setUploading] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const [ocrDetected, setOcrDetected] = useState<{ amount?: string; vendor?: string; date?: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -69,14 +72,83 @@ export default function ExpenseFormPage() {
     createMutation.mutate({ data });
   };
 
+  const runOcr = async (file: File) => {
+    setScanning(true);
+    setOcrDetected(null);
+    try {
+      const { createWorker } = await import("tesseract.js");
+      const worker = await createWorker("eng");
+      const { data: { text } } = await worker.recognize(file);
+      await worker.terminate();
+
+      const detected: { amount?: string; vendor?: string; date?: string } = {};
+
+      const amountMatch = text.match(/(?:total|amount|due|paid)[:\s]*\$?\s*([\d,]+\.?\d{0,2})/i)
+        || text.match(/\$\s*([\d,]+\.\d{2})/);
+      if (amountMatch) {
+        const raw = amountMatch[1].replace(/,/g, "");
+        const parsed = parseFloat(raw);
+        if (!isNaN(parsed) && parsed > 0 && parsed < 1000000) {
+          detected.amount = raw;
+          form.setValue("amount", parsed);
+        }
+      }
+
+      const dateMatch = text.match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/);
+      if (dateMatch) {
+        try {
+          const parts = dateMatch[1].split(/[\/\-]/);
+          if (parts.length === 3) {
+            const year = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
+            const iso = `${year}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+            if (!isNaN(new Date(iso).getTime())) {
+              detected.date = iso;
+              form.setValue("date", iso);
+            }
+          }
+        } catch {}
+      }
+
+      const vendorMatch = text.split('\n').slice(0, 5).find(line => 
+        line.trim().length > 2 && line.trim().length < 50 && /[a-zA-Z]/.test(line)
+      );
+      if (vendorMatch && !form.getValues('vendor')) {
+        const vendor = vendorMatch.trim().replace(/[^a-zA-Z0-9\s&'-]/g, '').trim();
+        if (vendor.length > 2) {
+          detected.vendor = vendor;
+          form.setValue("vendor", vendor);
+        }
+      }
+
+      setOcrDetected(Object.keys(detected).length > 0 ? detected : null);
+      
+      if (Object.keys(detected).length > 0) {
+        toast({ 
+          title: "Receipt scanned!", 
+          description: `Detected: ${[detected.amount ? `$${detected.amount}` : null, detected.vendor, detected.date].filter(Boolean).join(", ")}` 
+        });
+      } else {
+        toast({ title: "Scan complete", description: "Could not auto-detect fields. Enter manually.", variant: "default" });
+      }
+    } catch (err) {
+      console.error("OCR error:", err);
+      toast({ title: "OCR scan failed", description: "Please enter details manually.", variant: "destructive" });
+    } finally {
+      setScanning(false);
+    }
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
     try {
-      const res = await uploadMutation.mutateAsync({ data: { file } });
-      form.setValue("receiptUrl", res.url);
+      const [uploadRes] = await Promise.all([
+        uploadMutation.mutateAsync({ data: { file } }),
+        runOcr(file),
+      ]);
+      form.setValue("receiptUrl", uploadRes.url);
       setReceiptPreview(URL.createObjectURL(file));
       toast({ title: "Receipt uploaded" });
     } catch (err) {
@@ -188,20 +260,53 @@ export default function ExpenseFormPage() {
                 </FormItem>
               )} />
 
+              {/* Receipt Upload + OCR */}
               <div className="space-y-3">
-                <FormLabel>Receipt Image (Optional)</FormLabel>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium leading-none">Receipt Image (Optional)</label>
+                  {ocrDetected && (
+                    <div className="flex items-center gap-1.5 text-xs text-green-600 font-medium">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Fields auto-filled from receipt
+                    </div>
+                  )}
+                </div>
                 <div className="border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center text-center bg-secondary/5 relative">
-                  {uploading ? (
-                    <div className="flex flex-col items-center">
-                      <Loader2 className="w-8 h-8 animate-spin text-primary mb-2" />
-                      <span className="text-sm text-muted-foreground">Uploading...</span>
+                  {uploading || scanning ? (
+                    <div className="flex flex-col items-center gap-3">
+                      {scanning ? (
+                        <>
+                          <div className="relative">
+                            <Scan className="w-10 h-10 text-primary animate-pulse" />
+                          </div>
+                          <span className="text-sm font-medium text-foreground">Scanning receipt with OCR...</span>
+                          <span className="text-xs text-muted-foreground">Extracting amount, vendor & date</span>
+                        </>
+                      ) : (
+                        <>
+                          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                          <span className="text-sm text-muted-foreground">Uploading...</span>
+                        </>
+                      )}
                     </div>
                   ) : receiptPreview ? (
-                    <div className="flex flex-col items-center w-full">
-                       <img src={receiptPreview} alt="Receipt preview" className="max-h-[150px] object-contain mb-4 rounded border border-border shadow-sm" />
-                       <Button type="button" variant="outline" size="sm" onClick={() => { setReceiptPreview(null); form.setValue('receiptUrl', ''); }}>
-                         Remove Image
-                       </Button>
+                    <div className="flex flex-col items-center w-full gap-3">
+                      <img src={receiptPreview} alt="Receipt preview" className="max-h-[150px] object-contain rounded border border-border shadow-sm" />
+                      {ocrDetected && (
+                        <div className="flex flex-wrap gap-2 justify-center">
+                          {ocrDetected.amount && <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded">Amount: ${ocrDetected.amount}</span>}
+                          {ocrDetected.vendor && <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded">Vendor: {ocrDetected.vendor}</span>}
+                          {ocrDetected.date && <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded">Date: {ocrDetected.date}</span>}
+                        </div>
+                      )}
+                      <Button type="button" variant="outline" size="sm" onClick={() => { 
+                        setReceiptPreview(null); 
+                        form.setValue('receiptUrl', ''); 
+                        setOcrDetected(null);
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                      }}>
+                        Remove Image
+                      </Button>
                     </div>
                   ) : (
                     <>
@@ -209,8 +314,19 @@ export default function ExpenseFormPage() {
                         <UploadCloud className="w-6 h-6" />
                       </div>
                       <p className="text-sm font-medium text-foreground mb-1">Click to upload receipt</p>
-                      <p className="text-xs text-muted-foreground mb-4">PNG, JPG up to 5MB</p>
-                      <Input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={handleFileUpload} />
+                      <p className="text-xs text-muted-foreground mb-2">PNG, JPG up to 5MB — OCR will auto-fill fields</p>
+                      <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
+                        <Scan className="w-3.5 h-3.5" />
+                        OCR powered by Tesseract.js
+                      </div>
+                      <Input 
+                        ref={fileInputRef}
+                        type="file" 
+                        accept="image/*" 
+                        capture="environment"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                        onChange={handleFileUpload} 
+                      />
                     </>
                   )}
                 </div>
@@ -221,7 +337,7 @@ export default function ExpenseFormPage() {
                   type="submit" 
                   size="lg" 
                   className="w-full md:w-auto hover-elevate active-elevate-2 px-8 font-bold" 
-                  disabled={createMutation.isPending || uploading}
+                  disabled={createMutation.isPending || uploading || scanning}
                 >
                   {createMutation.isPending ? "SAVING..." : "SAVE EXPENSE"}
                 </Button>

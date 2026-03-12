@@ -532,6 +532,34 @@ paths:
                 items:
                   $ref: "#/components/schemas/Expense"
 
+  /dashboard/top-vendors:
+    get:
+      operationId: getTopVendors
+      tags: [dashboard]
+      summary: Get top vendors by spending
+      responses:
+        "200":
+          description: Top vendors ranked by total spending
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VendorSpending"
+
+  /ai-insights:
+    get:
+      operationId: getAiInsights
+      tags: [dashboard]
+      summary: Get AI-generated cost insights
+      responses:
+        "200":
+          description: AI-generated insights about spending patterns
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiInsightsResponse"
+
 components:
   parameters:
     AuthorizationSessionHeader:
@@ -841,3 +869,42 @@ components:
       required:
         - month
         - amount
+
+    VendorSpending:
+      type: object
+      properties:
+        vendor:
+          type: string
+        amount:
+          type: number
+        count:
+          type: integer
+      required:
+        - vendor
+        - amount
+        - count
+
+    AiInsight:
+      type: object
+      properties:
+        text:
+          type: string
+        type:
+          type: string
+          enum: [info, warning, tip]
+      required:
+        - text
+        - type
+
+    AiInsightsResponse:
+      type: object
+      properties:
+        insights:
+          type: array
+          items:
+            $ref: "#/components/schemas/AiInsight"
+        generatedAt:
+          type: string
+      required:
+        - insights
+        - generatedAt

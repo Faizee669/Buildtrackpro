@@ -42,13 +42,16 @@ artifacts-monorepo/
 
 ## Features
 
-- **Dashboard**: Budget overview, category pie chart, project bar chart, spending trend line chart, recent expenses
+- **Dashboard**: Budget overview, category pie chart, project bar chart, spending trend line chart, recent expenses, top vendors horizontal bar chart
+- **AI Cost Advisor**: On-demand AI insights panel using OpenAI (via Replit AI Integrations proxy); generates spending analysis with warnings/tips
 - **Projects**: Create/edit/view projects with budget tracking and status (active/completed/on_hold)
-- **Expenses**: Log expenses with category, vendor, date, notes, receipt upload
+- **Expenses**: Log expenses with category, vendor, date, notes, receipt upload; client-side vendor/notes search filter
+- **OCR Receipt Scanning**: Upload receipt images and auto-fill amount, vendor, date using Tesseract.js (client-side WebAssembly OCR)
 - **Filters**: Filter expenses by project, category, date range
 - **CSV Export**: Export filtered expenses to CSV
 - **Receipt Upload**: Upload receipt images via multer, stored in uploads/receipts/
 - **Authentication**: Replit OIDC via `openid-client`; sessions stored in `sessions` table
+- **PWA**: Progressive Web App support — manifest.json with theme/icons, service worker (sw.js) with offline fallback, iOS meta tags
 
 ## Database Schema
 
@@ -78,6 +81,8 @@ All routes are under `/api`:
 - `GET /dashboard/spending-by-project` — Project spending vs budget
 - `GET /dashboard/spending-trend` — Monthly trend (last 12 months)
 - `GET /dashboard/recent-expenses` — 5 most recent expenses
+- `GET /dashboard/top-vendors` — Top vendors by total spend
+- `GET /ai-insights` — AI-generated spending insights (OpenAI via Replit AI Integrations)
 
 ## Auth Flow
 
