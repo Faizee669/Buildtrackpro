@@ -92,29 +92,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarHeader>
           <SidebarContent className="bg-sidebar px-2 py-4">
             <div className="mb-4 px-2 space-y-2 group-data-[collapsible=icon]:hidden">
-              <Link href="/add-expense" className="block">
-                <button className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2.5 px-4 rounded-md shadow-lg shadow-primary/20 transition-all active:scale-[0.98] text-sm">
-                  <PlusCircle className="w-4 h-4" />
-                  <span>ADD EXPENSE</span>
-                </button>
+              <Link href="/add-expense" className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2.5 px-4 rounded-md shadow-lg shadow-primary/20 transition-all active:scale-[0.98] text-sm">
+                <PlusCircle className="w-4 h-4" />
+                <span>ADD EXPENSE</span>
               </Link>
-              <Link href="/projects" className="block">
-                <button className="w-full flex items-center justify-center gap-2 border border-primary/50 bg-primary/10 hover:bg-primary/20 text-primary font-bold py-2.5 px-4 rounded-md transition-all active:scale-[0.98] text-sm">
-                  <FolderPlus className="w-4 h-4" />
-                  <span>NEW PROJECT</span>
-                </button>
+              <Link href="/projects" className="w-full flex items-center justify-center gap-2 border border-primary/50 bg-primary/10 hover:bg-primary/20 text-primary font-bold py-2.5 px-4 rounded-md transition-all active:scale-[0.98] text-sm">
+                <FolderPlus className="w-4 h-4" />
+                <span>NEW PROJECT</span>
               </Link>
             </div>
             <div className="mb-4 px-2 hidden group-data-[collapsible=icon]:flex flex-col gap-2 items-center">
-              <Link href="/add-expense">
-                <button className="p-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md shadow-md" title="Add Expense">
-                  <PlusCircle className="w-5 h-5" />
-                </button>
+              <Link href="/add-expense" className="p-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md shadow-md" title="Add Expense">
+                <PlusCircle className="w-5 h-5" />
               </Link>
-              <Link href="/projects">
-                <button className="p-2.5 border border-primary/50 bg-primary/10 hover:bg-primary/20 text-primary rounded-md" title="New Project">
-                  <FolderPlus className="w-5 h-5" />
-                </button>
+              <Link href="/projects" className="p-2.5 border border-primary/50 bg-primary/10 hover:bg-primary/20 text-primary rounded-md" title="New Project">
+                <FolderPlus className="w-5 h-5" />
               </Link>
             </div>
             <SidebarGroup>
