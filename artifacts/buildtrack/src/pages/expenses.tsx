@@ -79,11 +79,9 @@ export default function Expenses() {
           <Button variant="outline" className="hover-elevate shadow-sm w-full md:w-auto" onClick={handleExport}>
             <Download className="w-4 h-4 mr-2" /> Export CSV
           </Button>
-          <Link href="/add-expense">
-            <Button className="hover-elevate active-elevate-2 shadow-sm w-full md:w-auto">
-              Add Expense
-            </Button>
-          </Link>
+          <Button asChild className="hover-elevate active-elevate-2 shadow-sm w-full md:w-auto">
+            <Link href="/add-expense">Add Expense</Link>
+          </Button>
         </div>
       </div>
 

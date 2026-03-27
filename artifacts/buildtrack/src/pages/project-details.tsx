@@ -308,8 +308,8 @@ export default function ProjectDetails() {
         ) : (
           <div className="p-12 text-center text-muted-foreground">
             <p>No expenses recorded for this project.</p>
-            <Link href="/add-expense">
-              <Button variant="link" className="text-primary mt-2">Add your first expense</Button>
+            <Link href="/add-expense" className="text-primary text-sm font-medium hover:underline mt-2 inline-block">
+              + Add your first expense
             </Link>
           </div>
         )}
