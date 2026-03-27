@@ -194,37 +194,66 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-[300px] w-full">
-              {categorySpending && categorySpending.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={categorySpending}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={2}
-                      dataKey="amount"
-                      nameKey="category"
-                      stroke="none"
-                    >
-                      {categorySpending.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[entry.category] || 'var(--color-chart-7)'} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value: number) => fmt(value)}
-                      contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '0.35rem' }}
-                    />
-                    <Legend 
-                      verticalAlign="bottom" 
-                      height={36}
-                      iconType="circle"
-                      formatter={(value) => <span className="text-foreground text-xs">{value}</span>}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
+              {categorySpending && categorySpending.length > 0 ? (() => {
+                const total = categorySpending.reduce((s, e) => s + e.amount, 0);
+                return (
+                  <>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie
+                          data={categorySpending}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={55}
+                          outerRadius={85}
+                          paddingAngle={2}
+                          dataKey="amount"
+                          nameKey="category"
+                          stroke="none"
+                          label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+                            if (percent < 0.05) return null;
+                            const RADIAN = Math.PI / 180;
+                            const r = innerRadius + (outerRadius - innerRadius) * 0.5;
+                            const x = cx + r * Math.cos(-midAngle * RADIAN);
+                            const y = cy + r * Math.sin(-midAngle * RADIAN);
+                            return (
+                              <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={11} fontWeight={700}>
+                                {`${(percent * 100).toFixed(0)}%`}
+                              </text>
+                            );
+                          }}
+                          labelLine={false}
+                        >
+                          {categorySpending.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[entry.category] || 'var(--color-chart-7)'} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value: number) => [`${fmt(value)} (${total > 0 ? ((value / total) * 100).toFixed(1) : 0}%)`, "Amount"]}
+                          contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '0.35rem' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="mt-2 space-y-1.5 max-h-[90px] overflow-y-auto pr-1">
+                      {categorySpending.map((entry) => {
+                        const pct = total > 0 ? ((entry.amount / total) * 100).toFixed(1) : "0.0";
+                        return (
+                          <div key={entry.category} className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: CATEGORY_COLORS[entry.category] || 'var(--color-chart-7)' }} />
+                              <span className="text-muted-foreground truncate">{entry.category}</span>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                              <span className="font-semibold text-foreground">{pct}%</span>
+                              <span className="text-muted-foreground">{fmt(entry.amount)}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                );
+              })() : (
                 <div className="h-full flex items-center justify-center text-muted-foreground">No data available</div>
               )}
             </div>

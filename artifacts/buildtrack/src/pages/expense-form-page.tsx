@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useCallback } from "react"
 import { useLocation } from "wouter"
 import { useCreateExpense, useListProjects, useUploadReceipt } from "@workspace/api-client-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -36,25 +36,10 @@ export default function ExpenseFormPage() {
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const [ocrDetected, setOcrDetected] = useState<{ amount?: string; vendor?: string; date?: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+  const addAnotherRef = useRef(false);
+
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
-  const createMutation = useCreateExpense({
-    mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListExpensesQueryKey() });
-        queryClient.invalidateQueries({ queryKey: getGetDashboardStatsQueryKey() });
-        toast({ title: "Expense logged successfully" });
-        setLocation("/expenses");
-      },
-      onError: (err: any) => {
-        toast({ title: "Failed to log expense", description: err?.error || "Unknown error", variant: "destructive" });
-      }
-    }
-  });
-
-  const uploadMutation = useUploadReceipt();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -67,6 +52,36 @@ export default function ExpenseFormPage() {
       receiptUrl: ""
     }
   });
+
+  const resetForm = useCallback(() => {
+    form.reset({ amount: 0, date: new Date().toISOString().split('T')[0], category: "Materials", vendor: "", notes: "", projectId: undefined });
+    setReceiptPreview(null);
+    setOcrDetected(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }, [form]);
+
+  const createMutation = useCreateExpense({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListExpensesQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetDashboardStatsQueryKey() });
+        if (addAnotherRef.current) {
+          addAnotherRef.current = false;
+          toast({ title: "Expense saved!", description: "Form is ready for the next entry." });
+          resetForm();
+        } else {
+          toast({ title: "Expense logged successfully" });
+          setLocation("/expenses");
+        }
+      },
+      onError: (err: any) => {
+        addAnotherRef.current = false;
+        toast({ title: "Failed to log expense", description: err?.error || "Unknown error", variant: "destructive" });
+      }
+    }
+  });
+
+  const uploadMutation = useUploadReceipt();
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     createMutation.mutate({ data });
@@ -332,14 +347,27 @@ export default function ExpenseFormPage() {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-border flex justify-end">
+              <div className="pt-4 border-t border-border flex flex-col sm:flex-row justify-end gap-3">
+                <Button
+                  type="button"
+                  size="lg"
+                  variant="outline"
+                  className="w-full sm:w-auto hover-elevate px-6 font-semibold"
+                  disabled={createMutation.isPending || uploading || scanning}
+                  onClick={form.handleSubmit((data) => {
+                    addAnotherRef.current = true;
+                    createMutation.mutate({ data });
+                  })}
+                >
+                  {createMutation.isPending && addAnotherRef.current ? "SAVING..." : "+ SAVE & ADD ANOTHER"}
+                </Button>
                 <Button 
                   type="submit" 
                   size="lg" 
-                  className="w-full md:w-auto hover-elevate active-elevate-2 px-8 font-bold" 
+                  className="w-full sm:w-auto hover-elevate active-elevate-2 px-8 font-bold" 
                   disabled={createMutation.isPending || uploading || scanning}
                 >
-                  {createMutation.isPending ? "SAVING..." : "SAVE EXPENSE"}
+                  {createMutation.isPending && !addAnotherRef.current ? "SAVING..." : "SAVE EXPENSE"}
                 </Button>
               </div>
             </form>

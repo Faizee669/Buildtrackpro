@@ -82,8 +82,27 @@ export default function ProjectDetails() {
     updateMutation.mutate({ id: projectId, data });
   };
 
-  if (projLoading || expLoading) return <div className="flex p-20 justify-center"><Loader2 className="animate-spin text-primary" /></div>;
-  if (!project) return <div>Project not found</div>;
+  if (projLoading || expLoading) return (
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="flex items-center gap-4 mb-2">
+        <Link href="/projects" className="p-2 bg-secondary/50 rounded-md hover:bg-secondary text-secondary-foreground transition-colors">
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <span className="text-muted-foreground text-sm">Loading project…</span>
+      </div>
+      <div className="flex justify-center py-20"><Loader2 className="animate-spin text-primary w-8 h-8" /></div>
+    </div>
+  );
+  if (!project) return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-4 mb-2">
+        <Link href="/projects" className="p-2 bg-secondary/50 rounded-md hover:bg-secondary text-secondary-foreground transition-colors">
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <span className="text-muted-foreground text-sm">Project not found</span>
+      </div>
+    </div>
+  );
 
   const pct = project.budget > 0 ? (project.totalExpenses / project.budget) * 100 : 0;
   const isOverBudget = project.totalExpenses > project.budget;
