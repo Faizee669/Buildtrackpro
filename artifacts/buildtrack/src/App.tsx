@@ -9,6 +9,7 @@ import Projects from "@/pages/projects";
 import ProjectDetails from "@/pages/project-details";
 import Expenses from "@/pages/expenses";
 import ExpenseFormPage from "@/pages/expense-form-page";
+import Analytics from "@/pages/analytics";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ function Router() {
         <Route path="/projects/:id" component={ProjectDetails} />
         <Route path="/expenses" component={Expenses} />
         <Route path="/add-expense" component={ExpenseFormPage} />
+        <Route path="/analytics" component={Analytics} />
         <Route component={NotFound} />
       </Switch>
     </AppLayout>

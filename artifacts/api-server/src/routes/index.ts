@@ -5,6 +5,7 @@ import projectsRouter from "./projects";
 import expensesRouter from "./expenses";
 import dashboardRouter from "./dashboard";
 import aiInsightsRouter from "./ai-insights";
+import analyticsRouter from "./analytics";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use(projectsRouter);
 router.use(expensesRouter);
 router.use(dashboardRouter);
 router.use(aiInsightsRouter);
+router.use(analyticsRouter);
 
 export default router;
