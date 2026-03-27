@@ -11,9 +11,10 @@ import {
   SidebarTrigger,
   SidebarFooter
 } from "@/components/ui/sidebar"
-import { LayoutDashboard, HardHat, Receipt, PlusCircle, LogOut, Loader2 } from "lucide-react"
+import { LayoutDashboard, HardHat, Receipt, PlusCircle, LogOut, Loader2, FolderPlus } from "lucide-react"
 import { useAuth } from "@workspace/replit-auth-web"
 import { useCurrency, CURRENCIES, type CurrencyCode } from "@/lib/currency-context"
+import { LoginPage } from "@/components/login-page"
 
 const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -66,27 +67,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden">
-        <div className="absolute inset-0 z-0 opacity-30 bg-cover bg-center" style={{ backgroundImage: `url(${import.meta.env.BASE_URL}images/auth-bg.png)` }}></div>
-        <div className="z-10 flex flex-col items-center gap-6 bg-card p-10 rounded-xl shadow-2xl border border-border max-w-sm w-full mx-4">
-          <div className="bg-primary text-primary-foreground p-3 rounded-lg">
-            <HardHat className="w-10 h-10" />
-          </div>
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl font-bold tracking-tight">BUILDTRACK</h2>
-            <p className="text-muted-foreground text-sm">Construction Expense Manager</p>
-          </div>
-          <p className="text-center text-sm text-muted-foreground">Track project expenses, receipts, and budgets across all your job sites.</p>
-          <button
-            onClick={login}
-            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-6 rounded-md shadow-lg transition-all active:scale-[0.98]"
-          >
-            Log in
-          </button>
-        </div>
-      </div>
-    );
+    return <LoginPage onReplitLogin={login} />;
   }
 
   const displayName = user?.firstName
@@ -110,11 +91,29 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </SidebarHeader>
           <SidebarContent className="bg-sidebar px-2 py-4">
-            <div className="mb-6 px-2 group-data-[collapsible=icon]:hidden">
+            <div className="mb-4 px-2 space-y-2 group-data-[collapsible=icon]:hidden">
               <Link href="/add-expense" className="block">
-                <button className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-4 rounded-md shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
-                  <PlusCircle className="w-5 h-5" />
+                <button className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2.5 px-4 rounded-md shadow-lg shadow-primary/20 transition-all active:scale-[0.98] text-sm">
+                  <PlusCircle className="w-4 h-4" />
                   <span>ADD EXPENSE</span>
+                </button>
+              </Link>
+              <Link href="/projects" className="block">
+                <button className="w-full flex items-center justify-center gap-2 border border-primary/50 bg-primary/10 hover:bg-primary/20 text-primary font-bold py-2.5 px-4 rounded-md transition-all active:scale-[0.98] text-sm">
+                  <FolderPlus className="w-4 h-4" />
+                  <span>NEW PROJECT</span>
+                </button>
+              </Link>
+            </div>
+            <div className="mb-4 px-2 hidden group-data-[collapsible=icon]:flex flex-col gap-2 items-center">
+              <Link href="/add-expense">
+                <button className="p-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md shadow-md" title="Add Expense">
+                  <PlusCircle className="w-5 h-5" />
+                </button>
+              </Link>
+              <Link href="/projects">
+                <button className="p-2.5 border border-primary/50 bg-primary/10 hover:bg-primary/20 text-primary rounded-md" title="New Project">
+                  <FolderPlus className="w-5 h-5" />
                 </button>
               </Link>
             </div>
