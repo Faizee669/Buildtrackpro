@@ -176,8 +176,9 @@ export default function ExpenseFormPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in duration-300">
       <div className="flex items-center gap-4">
-        <Link href="/dashboard" className="p-2 bg-secondary/50 rounded-md hover:bg-secondary text-secondary-foreground transition-colors hover-elevate">
-          <ArrowLeft className="w-5 h-5" />
+        <Link href="/dashboard" className="flex items-center gap-1.5 px-3 py-2 bg-secondary/50 rounded-md hover:bg-secondary text-secondary-foreground text-sm font-medium transition-colors hover-elevate">
+          <ArrowLeft className="w-4 h-4" />
+          Back
         </Link>
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Log Expense</h2>

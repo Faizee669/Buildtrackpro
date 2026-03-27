@@ -85,8 +85,9 @@ export default function ProjectDetails() {
   if (projLoading || expLoading) return (
     <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex items-center gap-4 mb-2">
-        <Link href="/projects" className="p-2 bg-secondary/50 rounded-md hover:bg-secondary text-secondary-foreground transition-colors">
-          <ArrowLeft className="w-5 h-5" />
+        <Link href="/projects" className="flex items-center gap-1.5 px-3 py-2 bg-secondary/50 rounded-md hover:bg-secondary text-secondary-foreground text-sm font-medium transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+          All Projects
         </Link>
         <span className="text-muted-foreground text-sm">Loading project…</span>
       </div>
@@ -96,8 +97,9 @@ export default function ProjectDetails() {
   if (!project) return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-2">
-        <Link href="/projects" className="p-2 bg-secondary/50 rounded-md hover:bg-secondary text-secondary-foreground transition-colors">
-          <ArrowLeft className="w-5 h-5" />
+        <Link href="/projects" className="flex items-center gap-1.5 px-3 py-2 bg-secondary/50 rounded-md hover:bg-secondary text-secondary-foreground text-sm font-medium transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+          All Projects
         </Link>
         <span className="text-muted-foreground text-sm">Project not found</span>
       </div>
@@ -118,8 +120,9 @@ export default function ProjectDetails() {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex items-center gap-4 mb-2">
-        <Link href="/projects" className="p-2 bg-secondary/50 rounded-md hover:bg-secondary text-secondary-foreground transition-colors hover-elevate">
-          <ArrowLeft className="w-5 h-5" />
+        <Link href="/projects" className="flex items-center gap-1.5 px-3 py-2 bg-secondary/50 rounded-md hover:bg-secondary text-secondary-foreground text-sm font-medium transition-colors hover-elevate">
+          <ArrowLeft className="w-4 h-4" />
+          All Projects
         </Link>
         <div className="flex-1">
           <div className="flex items-center gap-3">
