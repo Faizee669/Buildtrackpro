@@ -7,6 +7,7 @@ import { Receipt, HardHat, TrendingDown, DollarSign, ArrowRight, Loader2, Wallet
 import { Link } from "wouter"
 import { Button } from "@/components/ui/button"
 import { format, parseISO } from "date-fns"
+import { QuickAddDialog } from "@/components/quick-add-dialog"
 
 export default function Dashboard() {
   const { fmt } = useCurrency();
@@ -51,7 +52,29 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
+
+      {/* Dashboard header with Quick Add */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">Overview of your project finances</p>
+        </div>
+        <div className="flex gap-2">
+          <QuickAddDialog defaultTab="expense">
+            <Button size="lg" className="gap-2 font-bold shadow-lg shadow-primary/20 hover-elevate active-elevate-2">
+              <Receipt className="w-4 h-4" />
+              Add Expense
+            </Button>
+          </QuickAddDialog>
+          <QuickAddDialog defaultTab="project">
+            <Button size="lg" variant="outline" className="gap-2 font-semibold hover-elevate">
+              <HardHat className="w-4 h-4" />
+              New Project
+            </Button>
+          </QuickAddDialog>
+        </div>
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-card shadow-sm border-l-4 border-l-primary hover:shadow-md transition-shadow">
