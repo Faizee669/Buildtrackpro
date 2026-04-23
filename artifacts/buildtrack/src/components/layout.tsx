@@ -67,7 +67,7 @@ function SidebarToggleButton() {
       type="button"
       onClick={toggleSidebar}
       aria-label="Toggle navigation menu"
-      className="h-10 w-10 rounded-lg border border-card-border bg-card text-foreground shadow-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors flex items-center justify-center flex-shrink-0"
+      className="md:hidden h-10 w-10 rounded-lg border border-card-border bg-card text-foreground shadow-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors flex items-center justify-center flex-shrink-0"
     >
       <Menu className="w-5 h-5" />
     </button>
