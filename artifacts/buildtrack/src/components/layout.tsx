@@ -11,7 +11,7 @@ import {
   SidebarTrigger,
   SidebarFooter
 } from "@/components/ui/sidebar"
-import { LayoutDashboard, HardHat, Receipt, PlusCircle, LogOut, Loader2, FolderPlus, TrendingUp } from "lucide-react"
+import { LayoutDashboard, HardHat, Receipt, PlusCircle, LogOut, Loader2, FolderPlus, TrendingUp, Building2 } from "lucide-react"
 import { useAuth } from "@workspace/replit-auth-web"
 import { useCurrency, CURRENCIES, type CurrencyCode } from "@/lib/currency-context"
 import { LoginPage } from "@/components/login-page"
@@ -20,6 +20,7 @@ const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Projects", url: "/projects", icon: HardHat },
   { title: "Expenses", url: "/expenses", icon: Receipt },
+  { title: "Job & Site Mgmt", url: "/jobs", icon: Building2 },
   { title: "Analytics", url: "/analytics", icon: TrendingUp },
 ]
 

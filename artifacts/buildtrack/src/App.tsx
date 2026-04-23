@@ -10,6 +10,7 @@ import ProjectDetails from "@/pages/project-details";
 import Expenses from "@/pages/expenses";
 import ExpenseFormPage from "@/pages/expense-form-page";
 import Analytics from "@/pages/analytics";
+import Jobs from "@/pages/jobs";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ function Router() {
         <Route path="/expenses" component={Expenses} />
         <Route path="/add-expense" component={ExpenseFormPage} />
         <Route path="/analytics" component={Analytics} />
+        <Route path="/jobs" component={Jobs} />
         <Route component={NotFound} />
       </Switch>
     </AppLayout>
