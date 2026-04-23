@@ -14,11 +14,17 @@ export function formatCurrency(amount: number, currency = "USD", locale = "en-US
 }
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  "Materials": "var(--color-chart-1)",
-  "Labor": "var(--color-chart-2)",
-  "Fuel": "var(--color-chart-3)",
-  "Equipment Rental": "var(--color-chart-4)",
-  "Tools": "var(--color-chart-5)",
-  "Permits": "var(--color-chart-6)",
-  "Misc": "var(--color-chart-7)",
+  "Possession":        "var(--color-chart-1)",
+  "Foundation":        "var(--color-chart-2)",
+  "Cement":            "var(--color-chart-3)",
+  "Aggregates":        "var(--color-chart-4)",
+  "Bricks":            "var(--color-chart-5)",
+  "Steel":             "var(--color-chart-6)",
+  "Labour":            "var(--color-chart-7)",
+  "Paint":             "var(--color-chart-1)",
+  "Electric":          "var(--color-chart-2)",
+  "Wood":              "var(--color-chart-3)",
+  "Door Frame":        "var(--color-chart-4)",
+  "Plumbing":          "var(--color-chart-5)",
+  "Watchman Salary":   "var(--color-chart-6)",
 }

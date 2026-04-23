@@ -31,7 +31,7 @@ const CHART_COLORS = [
   "var(--color-chart-4)", "var(--color-chart-5)", "var(--color-chart-6)", "var(--color-chart-7)",
 ]
 
-const CATEGORIES = ["Materials", "Labor", "Fuel", "Equipment Rental", "Tools", "Permits", "Misc"]
+const CATEGORIES = ["Possession", "Foundation", "Cement", "Aggregates", "Bricks", "Steel", "Labour", "Paint", "Electric", "Wood", "Door Frame", "Plumbing", "Watchman Salary"]
 
 interface Summary {
   totalExpenses: number

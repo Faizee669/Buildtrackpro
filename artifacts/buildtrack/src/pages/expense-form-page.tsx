@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast"
 import { UploadCloud, Receipt, Loader2, ArrowLeft, Scan, CheckCircle2 } from "lucide-react"
 import { Link } from "wouter"
 
-const CATEGORIES = ["Materials", "Labor", "Fuel", "Equipment Rental", "Tools", "Permits", "Misc"] as const;
+const CATEGORIES = ["Possession", "Foundation", "Cement", "Aggregates", "Bricks", "Steel", "Labour", "Paint", "Electric", "Wood", "Door Frame", "Plumbing", "Watchman Salary"] as const;
 
 const formSchema = z.object({
   projectId: z.coerce.number().min(1, "Project is required"),
@@ -46,7 +46,7 @@ export default function ExpenseFormPage() {
     defaultValues: {
       amount: 0,
       date: new Date().toISOString().split('T')[0],
-      category: "Materials",
+      category: "Possession",
       vendor: "",
       notes: "",
       receiptUrl: ""
@@ -54,7 +54,7 @@ export default function ExpenseFormPage() {
   });
 
   const resetForm = useCallback(() => {
-    form.reset({ amount: 0, date: new Date().toISOString().split('T')[0], category: "Materials", vendor: "", notes: "", projectId: undefined });
+    form.reset({ amount: 0, date: new Date().toISOString().split('T')[0], category: "Possession", vendor: "", notes: "", projectId: undefined });
     setReceiptPreview(null);
     setOcrDetected(null);
     if (fileInputRef.current) fileInputRef.current.value = "";

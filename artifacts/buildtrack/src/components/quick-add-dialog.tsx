@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { PlusCircle, Receipt, FolderPlus, Loader2 } from "lucide-react"
 
-const CATEGORIES = ["Materials", "Labor", "Fuel", "Equipment Rental", "Tools", "Permits", "Misc"] as const
+const CATEGORIES = ["Possession", "Foundation", "Cement", "Aggregates", "Bricks", "Steel", "Labour", "Paint", "Electric", "Wood", "Door Frame", "Plumbing", "Watchman Salary"] as const
 
 const expenseSchema = z.object({
   projectId: z.coerce.number().min(1, "Please select a project"),
@@ -44,7 +44,7 @@ function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       date: new Date().toISOString().split("T")[0],
-      category: "Materials",
+      category: "Possession",
       amount: 0,
       vendor: "",
       notes: "",
@@ -57,7 +57,7 @@ function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
         queryClient.invalidateQueries({ queryKey: getListExpensesQueryKey() })
         queryClient.invalidateQueries({ queryKey: getGetDashboardStatsQueryKey() })
         toast({ title: "Expense added!", description: "Your expense has been recorded." })
-        form.reset({ date: new Date().toISOString().split("T")[0], category: "Materials", amount: 0, vendor: "", notes: "" })
+        form.reset({ date: new Date().toISOString().split("T")[0], category: "Possession", amount: 0, vendor: "", notes: "" })
         onSuccess()
       },
       onError: (err: any) => {

@@ -13,7 +13,7 @@ import { getListExpensesQueryKey } from "@workspace/api-client-react"
 import { useToast } from "@/hooks/use-toast"
 import { Link } from "wouter"
 
-const CATEGORIES = ["Materials", "Labor", "Fuel", "Equipment Rental", "Tools", "Permits", "Misc"]
+const CATEGORIES = ["Possession", "Foundation", "Cement", "Aggregates", "Bricks", "Steel", "Labour", "Paint", "Electric", "Wood", "Door Frame", "Plumbing", "Watchman Salary"]
 
 export default function Expenses() {
   const { fmt } = useCurrency();
