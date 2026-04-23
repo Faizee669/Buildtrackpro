@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { db, expensesTable, projectsTable } from "@workspace/db";
-import { eq, and, gte, lte, sql } from "drizzle-orm";
+import { db, expensesTable, projectsTable, phasesTable } from "@workspace/db";
+import { eq, and, gte, lte } from "drizzle-orm";
 import path from "path";
 import fs from "fs";
 import multer from "multer";
@@ -31,65 +31,56 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
-// Helper to join expense with project name
+const EXPENSE_SELECT = {
+  id: expensesTable.id,
+  projectId: expensesTable.projectId,
+  projectName: projectsTable.name,
+  phaseId: expensesTable.phaseId,
+  phaseName: phasesTable.name,
+  category: expensesTable.category,
+  amount: expensesTable.amount,
+  vendor: expensesTable.vendor,
+  crew: expensesTable.crew,
+  equipment: expensesTable.equipment,
+  date: expensesTable.date,
+  notes: expensesTable.notes,
+  receiptUrl: expensesTable.receiptUrl,
+  createdAt: expensesTable.createdAt,
+} as const;
+
 async function getExpenseWithProject(id: number) {
   const result = await db
-    .select({
-      id: expensesTable.id,
-      projectId: expensesTable.projectId,
-      projectName: projectsTable.name,
-      category: expensesTable.category,
-      amount: expensesTable.amount,
-      vendor: expensesTable.vendor,
-      date: expensesTable.date,
-      notes: expensesTable.notes,
-      receiptUrl: expensesTable.receiptUrl,
-      createdAt: expensesTable.createdAt,
-    })
+    .select(EXPENSE_SELECT)
     .from(expensesTable)
     .leftJoin(projectsTable, eq(expensesTable.projectId, projectsTable.id))
+    .leftJoin(phasesTable, eq(expensesTable.phaseId, phasesTable.id))
     .where(eq(expensesTable.id, id))
     .limit(1);
 
   if (!result[0]) return null;
-
-  return {
-    ...result[0],
-    amount: parseFloat(result[0].amount),
-  };
+  return { ...result[0], amount: parseFloat(result[0].amount) };
 }
 
 // GET /expenses
 router.get("/expenses", async (req, res): Promise<void> => {
   const parsed = ListExpensesQueryParams.safeParse(req.query);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const { projectId, category, startDate, endDate } = parsed.data;
+  const phaseId = req.query.phaseId ? parseInt(req.query.phaseId as string) : null;
 
   const conditions = [];
   if (projectId != null) conditions.push(eq(expensesTable.projectId, projectId));
+  if (phaseId != null) conditions.push(eq(expensesTable.phaseId, phaseId));
   if (category != null) conditions.push(eq(expensesTable.category, category));
   if (startDate != null) conditions.push(gte(expensesTable.date, startDate));
   if (endDate != null) conditions.push(lte(expensesTable.date, endDate));
 
   const query = db
-    .select({
-      id: expensesTable.id,
-      projectId: expensesTable.projectId,
-      projectName: projectsTable.name,
-      category: expensesTable.category,
-      amount: expensesTable.amount,
-      vendor: expensesTable.vendor,
-      date: expensesTable.date,
-      notes: expensesTable.notes,
-      receiptUrl: expensesTable.receiptUrl,
-      createdAt: expensesTable.createdAt,
-    })
+    .select(EXPENSE_SELECT)
     .from(expensesTable)
-    .leftJoin(projectsTable, eq(expensesTable.projectId, projectsTable.id));
+    .leftJoin(projectsTable, eq(expensesTable.projectId, projectsTable.id))
+    .leftJoin(phasesTable, eq(expensesTable.phaseId, phasesTable.id));
 
   const results = conditions.length > 0
     ? await query.where(and(...conditions)).orderBy(expensesTable.date)
@@ -101,17 +92,11 @@ router.get("/expenses", async (req, res): Promise<void> => {
 // POST /expenses
 router.post("/expenses", async (req, res): Promise<void> => {
   const parsed = CreateExpenseBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const [expense] = await db
     .insert(expensesTable)
-    .values({
-      ...parsed.data,
-      amount: String(parsed.data.amount),
-    })
+    .values({ ...parsed.data, amount: String(parsed.data.amount) })
     .returning();
 
   const result = await getExpenseWithProject(expense.id);
@@ -120,11 +105,7 @@ router.post("/expenses", async (req, res): Promise<void> => {
 
 // POST /expenses/upload-receipt
 router.post("/expenses/upload-receipt", upload.single("file"), async (req, res): Promise<void> => {
-  if (!req.file) {
-    res.status(400).json({ error: "No file uploaded" });
-    return;
-  }
-
+  if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
   const url = `/api/expenses/receipts/${req.file.filename}`;
   res.json({ url });
 });
@@ -133,23 +114,16 @@ router.post("/expenses/upload-receipt", upload.single("file"), async (req, res):
 router.get("/expenses/receipts/:filename", (req, res): void => {
   const filename = Array.isArray(req.params.filename) ? req.params.filename[0] : req.params.filename;
   const filePath = path.join(uploadDir, filename);
-  if (!fs.existsSync(filePath)) {
-    res.status(404).json({ error: "File not found" });
-    return;
-  }
+  if (!fs.existsSync(filePath)) { res.status(404).json({ error: "File not found" }); return; }
   res.sendFile(filePath);
 });
 
 // GET /expenses/export
 router.get("/expenses/export", async (req, res): Promise<void> => {
   const parsed = ListExpensesQueryParams.safeParse(req.query);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const { projectId, category, startDate, endDate } = parsed.data;
-
   const conditions = [];
   if (projectId != null) conditions.push(eq(expensesTable.projectId, projectId));
   if (category != null) conditions.push(eq(expensesTable.category, category));
@@ -157,35 +131,20 @@ router.get("/expenses/export", async (req, res): Promise<void> => {
   if (endDate != null) conditions.push(lte(expensesTable.date, endDate));
 
   const query = db
-    .select({
-      id: expensesTable.id,
-      projectId: expensesTable.projectId,
-      projectName: projectsTable.name,
-      category: expensesTable.category,
-      amount: expensesTable.amount,
-      vendor: expensesTable.vendor,
-      date: expensesTable.date,
-      notes: expensesTable.notes,
-      receiptUrl: expensesTable.receiptUrl,
-      createdAt: expensesTable.createdAt,
-    })
+    .select(EXPENSE_SELECT)
     .from(expensesTable)
-    .leftJoin(projectsTable, eq(expensesTable.projectId, projectsTable.id));
+    .leftJoin(projectsTable, eq(expensesTable.projectId, projectsTable.id))
+    .leftJoin(phasesTable, eq(expensesTable.phaseId, phasesTable.id));
 
   const results = conditions.length > 0
     ? await query.where(and(...conditions)).orderBy(expensesTable.date)
     : await query.orderBy(expensesTable.date);
 
-  const headers = ["ID", "Date", "Project", "Category", "Amount", "Vendor", "Notes", "Receipt URL"];
+  const headers = ["ID", "Date", "Project", "Phase", "Category", "Amount", "Vendor", "Crew", "Equipment", "Notes", "Receipt URL"];
   const rows = results.map(r => [
-    r.id,
-    r.date,
-    r.projectName ?? "",
-    r.category,
-    r.amount,
-    r.vendor ?? "",
-    r.notes ?? "",
-    r.receiptUrl ?? "",
+    r.id, r.date, r.projectName ?? "", r.phaseName ?? "",
+    r.category, r.amount, r.vendor ?? "", r.crew ?? "", r.equipment ?? "",
+    r.notes ?? "", r.receiptUrl ?? "",
   ]);
 
   const csv = [headers, ...rows]
@@ -201,17 +160,10 @@ router.get("/expenses/export", async (req, res): Promise<void> => {
 router.get("/expenses/:id", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = GetExpenseParams.safeParse({ id: raw });
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
   const result = await getExpenseWithProject(params.data.id);
-  if (!result) {
-    res.status(404).json({ error: "Expense not found" });
-    return;
-  }
-
+  if (!result) { res.status(404).json({ error: "Expense not found" }); return; }
   res.json(result);
 });
 
@@ -219,21 +171,13 @@ router.get("/expenses/:id", async (req, res): Promise<void> => {
 router.patch("/expenses/:id", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = UpdateExpenseParams.safeParse({ id: raw });
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
   const parsed = UpdateExpenseBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const updates: Record<string, unknown> = { ...parsed.data };
-  if (parsed.data.amount !== undefined) {
-    updates.amount = String(parsed.data.amount);
-  }
+  if (parsed.data.amount !== undefined) updates.amount = String(parsed.data.amount);
 
   const [updated] = await db
     .update(expensesTable)
@@ -241,10 +185,7 @@ router.patch("/expenses/:id", async (req, res): Promise<void> => {
     .where(eq(expensesTable.id, params.data.id))
     .returning();
 
-  if (!updated) {
-    res.status(404).json({ error: "Expense not found" });
-    return;
-  }
+  if (!updated) { res.status(404).json({ error: "Expense not found" }); return; }
 
   const result = await getExpenseWithProject(updated.id);
   res.json(result);
@@ -254,20 +195,10 @@ router.patch("/expenses/:id", async (req, res): Promise<void> => {
 router.delete("/expenses/:id", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = DeleteExpenseParams.safeParse({ id: raw });
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
-  const [deleted] = await db
-    .delete(expensesTable)
-    .where(eq(expensesTable.id, params.data.id))
-    .returning();
-
-  if (!deleted) {
-    res.status(404).json({ error: "Expense not found" });
-    return;
-  }
+  const [deleted] = await db.delete(expensesTable).where(eq(expensesTable.id, params.data.id)).returning();
+  if (!deleted) { res.status(404).json({ error: "Expense not found" }); return; }
 
   res.sendStatus(204);
 });

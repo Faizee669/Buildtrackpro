@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useCreateExpense, useCreateProject, useListProjects } from "@workspace/api-client-react"
+import { useCreateExpense, useCreateProject, useListProjects, useListPhases } from "@workspace/api-client-react"
 import { getListExpensesQueryKey, getGetDashboardStatsQueryKey, getListProjectsQueryKey } from "@workspace/api-client-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useToast } from "@/hooks/use-toast"
@@ -20,9 +20,12 @@ const CATEGORIES = ["Possession", "Foundation", "Cement", "Aggregates", "Bricks"
 
 const expenseSchema = z.object({
   projectId: z.coerce.number().min(1, "Please select a project"),
+  phaseId: z.coerce.number().optional().nullable(),
   category: z.enum(CATEGORIES),
   amount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
   vendor: z.string().optional(),
+  crew: z.string().optional(),
+  equipment: z.string().optional(),
   date: z.string().min(1, "Date is required"),
   notes: z.string().optional(),
 })
@@ -47,8 +50,16 @@ function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
       category: "Possession",
       amount: 0,
       vendor: "",
+      crew: "",
+      equipment: "",
       notes: "",
+      phaseId: null,
     },
+  })
+
+  const selectedProjectId = form.watch("projectId")
+  const { data: phases } = useListPhases(Number(selectedProjectId) || 0, {
+    query: { enabled: !!selectedProjectId && Number(selectedProjectId) > 0 }
   })
 
   const mutation = useCreateExpense({
@@ -57,7 +68,7 @@ function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
         queryClient.invalidateQueries({ queryKey: getListExpensesQueryKey() })
         queryClient.invalidateQueries({ queryKey: getGetDashboardStatsQueryKey() })
         toast({ title: "Expense added!", description: "Your expense has been recorded." })
-        form.reset({ date: new Date().toISOString().split("T")[0], category: "Possession", amount: 0, vendor: "", notes: "" })
+        form.reset({ date: new Date().toISOString().split("T")[0], category: "Possession", amount: 0, vendor: "", crew: "", equipment: "", notes: "", phaseId: null })
         onSuccess()
       },
       onError: (err: any) => {
@@ -72,12 +83,30 @@ function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
         <FormField control={form.control} name="projectId" render={({ field }) => (
           <FormItem>
             <FormLabel>Project</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value?.toString()}>
+            <Select onValueChange={v => { field.onChange(v); form.setValue("phaseId", null) }} value={field.value?.toString()}>
               <FormControl><SelectTrigger><SelectValue placeholder="Select project…" /></SelectTrigger></FormControl>
               <SelectContent>
                 {projects?.map(p => (
                   <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )} />
+
+        <FormField control={form.control} name="phaseId" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Phase <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+            <Select
+              onValueChange={v => field.onChange(v === "none" ? null : Number(v))}
+              value={field.value ? String(field.value) : "none"}
+              disabled={!selectedProjectId || Number(selectedProjectId) <= 0}
+            >
+              <FormControl><SelectTrigger><SelectValue placeholder={!selectedProjectId ? "Select project first" : "No phase"} /></SelectTrigger></FormControl>
+              <SelectContent>
+                <SelectItem value="none">— No phase —</SelectItem>
+                {phases?.map(ph => <SelectItem key={ph.id} value={String(ph.id)}>{ph.name}</SelectItem>)}
               </SelectContent>
             </Select>
             <FormMessage />
@@ -120,6 +149,24 @@ function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
             <FormItem>
               <FormLabel>Date</FormLabel>
               <FormControl><Input type="date" {...field} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <FormField control={form.control} name="crew" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Crew <span className="text-muted-foreground font-normal">(opt)</span></FormLabel>
+              <FormControl><Input placeholder="Crew / team" {...field} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+
+          <FormField control={form.control} name="equipment" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Equipment <span className="text-muted-foreground font-normal">(opt)</span></FormLabel>
+              <FormControl><Input placeholder="e.g. Excavator" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />

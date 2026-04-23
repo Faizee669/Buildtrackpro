@@ -185,7 +185,12 @@ export default function Expenses() {
                   </TableCell>
                   <TableCell>
                     <div className="font-semibold text-foreground">{expense.vendor || 'N/A'}</div>
-                    {expense.notes && <div className="text-xs text-muted-foreground truncate max-w-[200px]">{expense.notes}</div>}
+                    <div className="flex flex-wrap gap-x-2 text-xs text-muted-foreground">
+                      {(expense as any).phaseName && <span className="font-medium text-foreground/70">{(expense as any).phaseName}</span>}
+                      {(expense as any).crew && <span>· {(expense as any).crew}</span>}
+                      {(expense as any).equipment && <span>· {(expense as any).equipment}</span>}
+                      {expense.notes && <span className="truncate max-w-[160px]">{(expense as any).phaseName || (expense as any).crew || (expense as any).equipment ? '· ' : ''}{expense.notes}</span>}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Link href={`/projects/${expense.projectId}`} className="hover:underline text-primary">

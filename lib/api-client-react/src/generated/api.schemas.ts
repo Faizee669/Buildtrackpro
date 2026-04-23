@@ -111,28 +111,58 @@ export interface UpdateProjectBody {
   status?: UpdateProjectBodyStatus;
 }
 
-export type ExpenseCategory =
-  (typeof ExpenseCategory)[keyof typeof ExpenseCategory];
-
-export const ExpenseCategory = {
-  Materials: "Materials",
-  Labor: "Labor",
-  Fuel: "Fuel",
-  Equipment_Rental: "Equipment Rental",
-  Tools: "Tools",
-  Permits: "Permits",
-  Misc: "Misc",
+export type PhaseStatus = (typeof PhaseStatus)[keyof typeof PhaseStatus];
+export const PhaseStatus = {
+  active: "active",
+  completed: "completed",
+  on_hold: "on_hold",
 } as const;
+
+export interface Phase {
+  id: number;
+  projectId: number;
+  name: string;
+  /** @nullable */
+  description?: string | null;
+  status: PhaseStatus;
+  totalExpenses: number;
+  expenseCount: number;
+  createdAt: string;
+}
+
+export interface CreatePhaseBody {
+  name: string;
+  /** @nullable */
+  description?: string | null;
+  status?: PhaseStatus;
+}
+
+export interface UpdatePhaseBody {
+  name?: string;
+  /** @nullable */
+  description?: string | null;
+  status?: PhaseStatus;
+}
+
+export type ExpenseCategory = string;
 
 export interface Expense {
   id: number;
   projectId: number;
+  /** @nullable */
+  phaseId?: number | null;
+  /** @nullable */
+  phaseName?: string | null;
   /** @nullable */
   projectName?: string | null;
   category: ExpenseCategory;
   amount: number;
   /** @nullable */
   vendor?: string | null;
+  /** @nullable */
+  crew?: string | null;
+  /** @nullable */
+  equipment?: string | null;
   date: string;
   /** @nullable */
   notes?: string | null;
@@ -141,25 +171,18 @@ export interface Expense {
   createdAt: string;
 }
 
-export type CreateExpenseBodyCategory =
-  (typeof CreateExpenseBodyCategory)[keyof typeof CreateExpenseBodyCategory];
-
-export const CreateExpenseBodyCategory = {
-  Materials: "Materials",
-  Labor: "Labor",
-  Fuel: "Fuel",
-  Equipment_Rental: "Equipment Rental",
-  Tools: "Tools",
-  Permits: "Permits",
-  Misc: "Misc",
-} as const;
-
 export interface CreateExpenseBody {
   projectId: number;
-  category: CreateExpenseBodyCategory;
+  /** @nullable */
+  phaseId?: number | null;
+  category: string;
   amount: number;
   /** @nullable */
   vendor?: string | null;
+  /** @nullable */
+  crew?: string | null;
+  /** @nullable */
+  equipment?: string | null;
   date: string;
   /** @nullable */
   notes?: string | null;
@@ -167,25 +190,18 @@ export interface CreateExpenseBody {
   receiptUrl?: string | null;
 }
 
-export type UpdateExpenseBodyCategory =
-  (typeof UpdateExpenseBodyCategory)[keyof typeof UpdateExpenseBodyCategory];
-
-export const UpdateExpenseBodyCategory = {
-  Materials: "Materials",
-  Labor: "Labor",
-  Fuel: "Fuel",
-  Equipment_Rental: "Equipment Rental",
-  Tools: "Tools",
-  Permits: "Permits",
-  Misc: "Misc",
-} as const;
-
 export interface UpdateExpenseBody {
   projectId?: number;
-  category?: UpdateExpenseBodyCategory;
+  /** @nullable */
+  phaseId?: number | null;
+  category?: string;
   amount?: number;
   /** @nullable */
   vendor?: string | null;
+  /** @nullable */
+  crew?: string | null;
+  /** @nullable */
+  equipment?: string | null;
   date?: string;
   /** @nullable */
   notes?: string | null;
@@ -260,21 +276,15 @@ export type HandleBrowserLoginCallbackParams = {
 };
 
 export type ListExpensesParams = {
-  /**
-   * @nullable
-   */
+  /** @nullable */
   projectId?: number | null;
-  /**
-   * @nullable
-   */
+  /** @nullable */
+  phaseId?: number | null;
+  /** @nullable */
   category?: string | null;
-  /**
-   * @nullable
-   */
+  /** @nullable */
   startDate?: string | null;
-  /**
-   * @nullable
-   */
+  /** @nullable */
   endDate?: string | null;
 };
 

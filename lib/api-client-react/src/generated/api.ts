@@ -22,6 +22,7 @@ import type {
   BeginBrowserLoginParams,
   CategorySpending,
   CreateExpenseBody,
+  CreatePhaseBody,
   CreateProjectBody,
   DashboardStats,
   ErrorEnvelope,
@@ -34,10 +35,12 @@ import type {
   LogoutSuccess,
   MobileTokenExchangeRequest,
   MobileTokenExchangeSuccess,
+  Phase,
   Project,
   ProjectSpending,
   SpendingTrend,
   UpdateExpenseBody,
+  UpdatePhaseBody,
   UpdateProjectBody,
   UploadReceiptBody,
   UploadReceiptResponse,
@@ -2216,4 +2219,71 @@ export function useGetAiInsights<
   };
 
   return { ...query, queryKey: queryOptions.queryKey };
+}
+
+// ─── Phases ─────────────────────────────────────────────────────────────────
+
+export const getListPhasesUrl = (projectId: number) => `/api/projects/${projectId}/phases`;
+export const getListPhasesQueryKey = (projectId: number) => [getListPhasesUrl(projectId)] as const;
+
+export const listPhases = async (projectId: number, options?: RequestInit): Promise<Phase[]> =>
+  customFetch<Phase[]>(getListPhasesUrl(projectId), { ...options, method: "GET" });
+
+export function useListPhases<TData = Phase[], TError = ErrorType<unknown>>(
+  projectId: number,
+  options?: {
+    query?: UseQueryOptions<Phase[], TError, TData>;
+    request?: SecondParameter<typeof customFetch>;
+  }
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getListPhasesQueryKey(projectId);
+  const queryFn: QueryFunction<Phase[]> = ({ signal }) => listPhases(projectId, { signal, ...requestOptions });
+  const q = useQuery({ queryKey, queryFn, enabled: !!projectId, ...queryOptions }) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  return { ...q, queryKey };
+}
+
+export const createPhase = async (projectId: number, body: CreatePhaseBody, options?: RequestInit): Promise<Phase> =>
+  customFetch<Phase>(getListPhasesUrl(projectId), { ...options, method: "POST", body: JSON.stringify(body) });
+
+export function useCreatePhase<TError = ErrorType<unknown>, TContext = unknown>(
+  projectId: number,
+  options?: {
+    mutation?: UseMutationOptions<Phase, TError, { data: BodyType<CreatePhaseBody> }, TContext>;
+    request?: SecondParameter<typeof customFetch>;
+  }
+): UseMutationResult<Phase, TError, { data: BodyType<CreatePhaseBody> }, TContext> {
+  const { mutation: mutationOptions, request: requestOptions } = options ?? {};
+  const mutationFn: MutationFunction<Phase, { data: BodyType<CreatePhaseBody> }> = ({ data }) =>
+    createPhase(projectId, data, requestOptions);
+  return useMutation({ mutationFn, ...mutationOptions });
+}
+
+export const updatePhase = async (id: number, body: UpdatePhaseBody, options?: RequestInit): Promise<Phase> =>
+  customFetch<Phase>(`/api/phases/${id}`, { ...options, method: "PATCH", body: JSON.stringify(body) });
+
+export function useUpdatePhase<TError = ErrorType<unknown>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<Phase, TError, { id: number; data: BodyType<UpdatePhaseBody> }, TContext>;
+    request?: SecondParameter<typeof customFetch>;
+  }
+): UseMutationResult<Phase, TError, { id: number; data: BodyType<UpdatePhaseBody> }, TContext> {
+  const { mutation: mutationOptions, request: requestOptions } = options ?? {};
+  const mutationFn: MutationFunction<Phase, { id: number; data: BodyType<UpdatePhaseBody> }> = ({ id, data }) =>
+    updatePhase(id, data, requestOptions);
+  return useMutation({ mutationFn, ...mutationOptions });
+}
+
+export const deletePhase = async (id: number, options?: RequestInit): Promise<void> =>
+  customFetch<void>(`/api/phases/${id}`, { ...options, method: "DELETE" });
+
+export function useDeletePhase<TError = ErrorType<unknown>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<void, TError, { id: number }, TContext>;
+    request?: SecondParameter<typeof customFetch>;
+  }
+): UseMutationResult<void, TError, { id: number }, TContext> {
+  const { mutation: mutationOptions, request: requestOptions } = options ?? {};
+  const mutationFn: MutationFunction<void, { id: number }> = ({ id }) => deletePhase(id, requestOptions);
+  return useMutation({ mutationFn, ...mutationOptions });
 }

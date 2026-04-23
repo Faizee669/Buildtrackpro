@@ -169,6 +169,7 @@ export const DeleteProjectParams = zod.object({
  */
 export const ListExpensesQueryParams = zod.object({
   projectId: zod.coerce.number().nullish(),
+  phaseId: zod.coerce.number().nullish(),
   category: zod.coerce.string().nullish(),
   startDate: zod.coerce.string().nullish(),
   endDate: zod.coerce.string().nullish(),
@@ -207,6 +208,7 @@ export const ListExpensesResponse = zod.array(ListExpensesResponseItem);
  */
 export const CreateExpenseBody = zod.object({
   projectId: zod.number(),
+  phaseId: zod.number().nullish(),
   category: zod.enum([
     "Possession",
     "Foundation",
@@ -224,6 +226,8 @@ export const CreateExpenseBody = zod.object({
   ]),
   amount: zod.number(),
   vendor: zod.string().nullish(),
+  crew: zod.string().nullish(),
+  equipment: zod.string().nullish(),
   date: zod.string(),
   notes: zod.string().nullish(),
   receiptUrl: zod.string().nullish(),
@@ -272,6 +276,7 @@ export const UpdateExpenseParams = zod.object({
 
 export const UpdateExpenseBody = zod.object({
   projectId: zod.number().optional(),
+  phaseId: zod.number().nullish(),
   category: zod
     .enum([
       "Possession",
@@ -291,6 +296,8 @@ export const UpdateExpenseBody = zod.object({
     .optional(),
   amount: zod.number().optional(),
   vendor: zod.string().nullish(),
+  crew: zod.string().nullish(),
+  equipment: zod.string().nullish(),
   date: zod.string().optional(),
   notes: zod.string().nullish(),
   receiptUrl: zod.string().nullish(),
@@ -438,6 +445,20 @@ export const GetTopVendorsResponseItem = zod.object({
   count: zod.number(),
 });
 export const GetTopVendorsResponse = zod.array(GetTopVendorsResponseItem);
+
+// ─── Phases ─────────────────────────────────────────────────────────────────
+
+export const CreatePhaseBody = zod.object({
+  name: zod.string().min(1, "Name is required"),
+  description: zod.string().nullish(),
+  status: zod.enum(["active", "completed", "on_hold"]).default("active"),
+});
+
+export const UpdatePhaseBody = zod.object({
+  name: zod.string().min(1).optional(),
+  description: zod.string().nullish(),
+  status: zod.enum(["active", "completed", "on_hold"]).optional(),
+});
 
 /**
  * @summary Get AI-generated cost insights

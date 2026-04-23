@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react"
 import { useLocation } from "wouter"
-import { useCreateExpense, useListProjects, useUploadReceipt } from "@workspace/api-client-react"
+import { useCreateExpense, useListProjects, useUploadReceipt, useListPhases } from "@workspace/api-client-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
@@ -20,9 +20,12 @@ const CATEGORIES = ["Possession", "Foundation", "Cement", "Aggregates", "Bricks"
 
 const formSchema = z.object({
   projectId: z.coerce.number().min(1, "Project is required"),
+  phaseId: z.coerce.number().optional().nullable(),
   category: z.enum(CATEGORIES),
   amount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
   vendor: z.string().optional(),
+  crew: z.string().optional(),
+  equipment: z.string().optional(),
   date: z.string().min(1, "Date is required"),
   notes: z.string().optional(),
   receiptUrl: z.string().optional(),
@@ -48,13 +51,20 @@ export default function ExpenseFormPage() {
       date: new Date().toISOString().split('T')[0],
       category: "Possession",
       vendor: "",
+      crew: "",
+      equipment: "",
       notes: "",
       receiptUrl: ""
     }
   });
 
+  const selectedProjectId = form.watch("projectId");
+  const { data: phases } = useListPhases(Number(selectedProjectId) || 0, {
+    query: { enabled: !!selectedProjectId && Number(selectedProjectId) > 0 }
+  });
+
   const resetForm = useCallback(() => {
-    form.reset({ amount: 0, date: new Date().toISOString().split('T')[0], category: "Possession", vendor: "", notes: "", projectId: undefined });
+    form.reset({ amount: 0, date: new Date().toISOString().split('T')[0], category: "Possession", vendor: "", crew: "", equipment: "", notes: "", projectId: undefined, phaseId: null });
     setReceiptPreview(null);
     setOcrDetected(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -265,6 +275,53 @@ export default function ExpenseFormPage() {
                   <FormMessage />
                 </FormItem>
               )} />
+
+              {/* Phase, Crew, Equipment */}
+              <FormField control={form.control} name="phaseId" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phase / Sub-Site <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                  <Select
+                    onValueChange={v => field.onChange(v === "none" ? null : Number(v))}
+                    value={field.value ? String(field.value) : "none"}
+                    disabled={!selectedProjectId || Number(selectedProjectId) <= 0}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="h-12 border-border">
+                        <SelectValue placeholder={!selectedProjectId ? "Select a project first" : phases?.length ? "Select phase (optional)" : "No phases defined"} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">— No phase —</SelectItem>
+                      {phases?.map(ph => (
+                        <SelectItem key={ph.id} value={String(ph.id)}>{ph.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField control={form.control} name="crew" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Crew <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Team A, Ali's crew…" className="h-12" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                <FormField control={form.control} name="equipment" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Equipment <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Excavator, Crane, JCB…" className="h-12" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
 
               <FormField control={form.control} name="notes" render={({ field }) => (
                 <FormItem>
