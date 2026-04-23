@@ -21,6 +21,7 @@ import {
   Package,
   Search,
   Bell,
+  Menu,
 } from "lucide-react"
 import { useAuth } from "@workspace/replit-auth-web"
 import { useCurrency, CURRENCIES, type CurrencyCode } from "@/lib/currency-context"
@@ -237,7 +238,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex flex-col flex-1 w-full min-w-0">
           <header className="h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 border-b border-card-border bg-card/80 backdrop-blur-md sticky top-0 z-30">
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <SidebarTrigger className="hover-elevate active-elevate-2 bg-muted text-foreground rounded-md" />
+              <SidebarTrigger
+                aria-label="Toggle navigation menu"
+                className="h-10 w-10 rounded-lg border border-card-border bg-card text-foreground shadow-sm hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors flex items-center justify-center [&>svg]:hidden"
+              >
+                <Menu className="w-5 h-5" />
+              </SidebarTrigger>
               <h1 className="font-bold text-lg text-foreground hidden sm:block truncate">
                 {currentNav?.title ?? "Overview"}
               </h1>
