@@ -4,14 +4,17 @@ import {
   Sidebar, 
   SidebarContent, 
   SidebarGroup, 
+  SidebarGroupLabel,
   SidebarMenu, 
   SidebarMenuItem, 
   SidebarMenuButton,
   SidebarHeader,
   SidebarTrigger,
-  SidebarFooter
+  SidebarFooter,
+  SidebarSeparator,
 } from "@/components/ui/sidebar"
-import { LayoutDashboard, HardHat, Receipt, PlusCircle, LogOut, Loader2, FolderPlus, TrendingUp, Building2 } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { LayoutDashboard, HardHat, Receipt, PlusCircle, LogOut, Loader2, FolderPlus, TrendingUp, Building2, Users, Layers } from "lucide-react"
 import { useAuth } from "@workspace/replit-auth-web"
 import { useCurrency, CURRENCIES, type CurrencyCode } from "@/lib/currency-context"
 import { LoginPage } from "@/components/login-page"
@@ -20,7 +23,6 @@ const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Projects", url: "/projects", icon: HardHat },
   { title: "Expenses", url: "/expenses", icon: Receipt },
-  { title: "Job & Site Mgmt", url: "/jobs", icon: Building2 },
   { title: "Analytics", url: "/analytics", icon: TrendingUp },
 ]
 
@@ -92,7 +94,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </span>
             </div>
           </SidebarHeader>
-          <SidebarContent className="bg-sidebar px-2 py-4">
+          <SidebarContent className="bg-sidebar px-2 py-4 overflow-y-auto">
+            {/* Action buttons — expanded */}
             <div className="mb-4 px-2 space-y-2 group-data-[collapsible=icon]:hidden">
               <Link href="/add-expense" className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2.5 px-4 rounded-md shadow-lg shadow-primary/20 transition-all active:scale-[0.98] text-sm">
                 <PlusCircle className="w-4 h-4" />
@@ -103,20 +106,33 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <span>NEW PROJECT</span>
               </Link>
             </div>
+            {/* Action buttons — icon-only */}
             <div className="mb-4 px-2 hidden group-data-[collapsible=icon]:flex flex-col gap-2 items-center">
-              <Link href="/add-expense" className="p-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md shadow-md" title="Add Expense">
-                <PlusCircle className="w-5 h-5" />
-              </Link>
-              <Link href="/projects" className="p-2.5 border border-primary/50 bg-primary/10 hover:bg-primary/20 text-primary rounded-md" title="New Project">
-                <FolderPlus className="w-5 h-5" />
-              </Link>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/add-expense" className="p-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md shadow-md">
+                    <PlusCircle className="w-5 h-5" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">Add Expense</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/projects" className="p-2.5 border border-primary/50 bg-primary/10 hover:bg-primary/20 text-primary rounded-md">
+                    <FolderPlus className="w-5 h-5" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">New Project</TooltipContent>
+              </Tooltip>
             </div>
+
+            {/* Main nav */}
             <SidebarGroup>
-              <SidebarMenu className="gap-2">
+              <SidebarMenu className="gap-1">
                 {navItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      asChild 
+                    <SidebarMenuButton
+                      asChild
                       isActive={location === item.url || (item.url !== '/dashboard' && location.startsWith(item.url))}
                       className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors font-medium h-11"
                     >
@@ -129,6 +145,45 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 ))}
               </SidebarMenu>
             </SidebarGroup>
+
+            <SidebarSeparator className="my-3" />
+
+            {/* ── Job & Site Management ── prominent button */}
+            <div className="px-2 group-data-[collapsible=icon]:hidden">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-sidebar-foreground/40 px-1 mb-2">Site Operations</p>
+              <Link
+                href="/jobs"
+                className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg border transition-all font-bold text-sm ${
+                  location.startsWith('/jobs')
+                    ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20'
+                    : 'bg-primary/10 hover:bg-primary/20 text-primary border-primary/30 hover:border-primary/50'
+                }`}
+              >
+                <Building2 className="w-5 h-5 flex-shrink-0" />
+                <div className="flex flex-col leading-tight">
+                  <span>Job & Site Mgmt</span>
+                  <span className="text-[10px] font-normal opacity-70">Crew · Phases · Equipment</span>
+                </div>
+              </Link>
+            </div>
+            {/* Icon-only version */}
+            <div className="hidden group-data-[collapsible=icon]:flex justify-center px-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href="/jobs"
+                    className={`p-2.5 rounded-lg border transition-all ${
+                      location.startsWith('/jobs')
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-primary/10 hover:bg-primary/20 text-primary border-primary/30'
+                    }`}
+                  >
+                    <Building2 className="w-5 h-5" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">Job & Site Management</TooltipContent>
+              </Tooltip>
+            </div>
           </SidebarContent>
           <SidebarFooter className="border-t border-sidebar-border p-4 bg-sidebar">
             <div className="flex items-center gap-3 group-data-[collapsible=icon]:hidden">
