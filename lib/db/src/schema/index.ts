@@ -2,3 +2,5 @@ export * from "./auth";
 export * from "./projects";
 export * from "./phases";
 export * from "./expenses";
+export * from "./crew";
+export * from "./inventory";

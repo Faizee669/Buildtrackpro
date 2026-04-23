@@ -11,6 +11,8 @@ import Expenses from "@/pages/expenses";
 import ExpenseFormPage from "@/pages/expense-form-page";
 import Analytics from "@/pages/analytics";
 import Jobs from "@/pages/jobs";
+import Crew from "@/pages/crew";
+import Inventory from "@/pages/inventory";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -29,6 +31,8 @@ function Router() {
         <Route path="/add-expense" component={ExpenseFormPage} />
         <Route path="/analytics" component={Analytics} />
         <Route path="/jobs" component={Jobs} />
+        <Route path="/crew" component={Crew} />
+        <Route path="/inventory" component={Inventory} />
         <Route component={NotFound} />
       </Switch>
     </AppLayout>

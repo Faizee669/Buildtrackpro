@@ -107,6 +107,9 @@ export const CreateProjectBody = zod.object({
   name: zod.string(),
   description: zod.string().nullish(),
   budget: zod.number(),
+  laborBudget: zod.number().optional(),
+  materialBudget: zod.number().optional(),
+  estimatedRevenue: zod.number().optional(),
   startDate: zod.string(),
   status: zod.enum(["active", "completed", "on_hold"]),
 });
@@ -141,6 +144,9 @@ export const UpdateProjectBody = zod.object({
   name: zod.string().optional(),
   description: zod.string().nullish(),
   budget: zod.number().optional(),
+  laborBudget: zod.number().optional(),
+  materialBudget: zod.number().optional(),
+  estimatedRevenue: zod.number().optional(),
   startDate: zod.string().optional(),
   status: zod.enum(["active", "completed", "on_hold"]).optional(),
 });
@@ -458,6 +464,50 @@ export const UpdatePhaseBody = zod.object({
   name: zod.string().min(1).optional(),
   description: zod.string().nullish(),
   status: zod.enum(["active", "completed", "on_hold"]).optional(),
+});
+
+// ─── Crew ───────────────────────────────────────────────────────────────────
+
+export const CrewRoleEnum = zod.enum(["laborer", "driver", "supervisor", "mason", "electrician", "plumber", "carpenter", "operator"]);
+
+export const CreateCrewBody = zod.object({
+  name: zod.string().min(1, "Name is required"),
+  role: CrewRoleEnum.default("laborer"),
+  dailyRate: zod.number().min(0).default(0),
+  phone: zod.string().nullish(),
+  projectId: zod.number().nullish(),
+  status: zod.enum(["active", "inactive"]).default("active"),
+});
+
+export const UpdateCrewBody = zod.object({
+  name: zod.string().min(1).optional(),
+  role: CrewRoleEnum.optional(),
+  dailyRate: zod.number().min(0).optional(),
+  phone: zod.string().nullish(),
+  projectId: zod.number().nullish(),
+  status: zod.enum(["active", "inactive"]).optional(),
+});
+
+// ─── Inventory ──────────────────────────────────────────────────────────────
+
+export const CreateInventoryItemBody = zod.object({
+  name: zod.string().min(1, "Name is required"),
+  unit: zod.string().min(1).default("units"),
+  quantity: zod.number().min(0).default(0),
+  costPerUnit: zod.number().min(0).default(0),
+  reorderLevel: zod.number().min(0).default(0),
+  vendor: zod.string().nullish(),
+  projectId: zod.number().nullish(),
+});
+
+export const UpdateInventoryItemBody = zod.object({
+  name: zod.string().min(1).optional(),
+  unit: zod.string().min(1).optional(),
+  quantity: zod.number().min(0).optional(),
+  costPerUnit: zod.number().min(0).optional(),
+  reorderLevel: zod.number().min(0).optional(),
+  vendor: zod.string().nullish(),
+  projectId: zod.number().nullish(),
 });
 
 /**

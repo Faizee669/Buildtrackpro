@@ -1,9 +1,9 @@
-import { useGetDashboardStats, useGetSpendingByCategory, useGetSpendingByProject, useGetSpendingTrend, useGetRecentExpenses, useGetTopVendors, useGetAiInsights } from "@workspace/api-client-react"
+import { useGetDashboardStats, useGetSpendingByCategory, useGetSpendingByProject, useGetSpendingTrend, useGetRecentExpenses, useGetTopVendors, useGetAiInsights, useLaborVsMaterial, useTopWorkers, useProfitByProject } from "@workspace/api-client-react"
 import { CATEGORY_COLORS } from "@/lib/utils"
 import { useCurrency } from "@/lib/currency-context"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, CartesianGrid, Legend } from "recharts"
-import { Receipt, HardHat, TrendingDown, DollarSign, ArrowRight, Loader2, Wallet, Sparkles, RefreshCw, AlertTriangle, Lightbulb, Info } from "lucide-react"
+import { Receipt, HardHat, TrendingDown, DollarSign, ArrowRight, Loader2, Wallet, Sparkles, RefreshCw, AlertTriangle, Lightbulb, Info, TrendingUp, Users, Banknote, Percent } from "lucide-react"
 import { Link } from "wouter"
 import { Button } from "@/components/ui/button"
 import { format, parseISO } from "date-fns"
@@ -18,6 +18,9 @@ export default function Dashboard() {
   const { data: recent, isLoading: recentLoading } = useGetRecentExpenses();
   const { data: topVendors, isLoading: vendorsLoading } = useGetTopVendors();
   const { data: aiInsights, isLoading: aiLoading, refetch: refetchAI } = useGetAiInsights({ query: { staleTime: 0, refetchOnMount: false, enabled: false } });
+  const { data: laborVsMaterial } = useLaborVsMaterial();
+  const { data: topWorkers } = useTopWorkers();
+  const { data: profitByProject } = useProfitByProject();
 
   const isLoading = statsLoading || catLoading || projLoading || trendLoading || recentLoading;
 
@@ -74,6 +77,72 @@ export default function Dashboard() {
           </QuickAddDialog>
         </div>
       </div>
+
+      {/* Profit Snapshot — answers "Are we making money?" */}
+      {(() => {
+        const totalRevenue = stats.totalRevenue ?? 0;
+        const totalProfit = stats.totalProfit ?? (totalRevenue - stats.totalSpent);
+        const margin = stats.profitMargin ?? (totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0);
+        const laborSpent = stats.laborSpent ?? 0;
+        const materialSpent = stats.materialSpent ?? 0;
+        const totalCost = laborSpent + materialSpent;
+        const laborPct = totalCost > 0 ? (laborSpent / totalCost) * 100 : 0;
+        const profitable = totalProfit >= 0;
+        return (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="bg-card shadow-sm border-l-4 border-l-emerald-500 hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total Revenue</p>
+                    <p className="text-3xl font-display font-bold text-foreground">{fmt(totalRevenue)}</p>
+                  </div>
+                  <div className="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md"><Banknote className="w-5 h-5" /></div>
+                </div>
+                <p className="mt-4 text-xs text-muted-foreground">Estimated across all projects</p>
+              </CardContent>
+            </Card>
+            <Card className={`bg-card shadow-sm border-l-4 ${profitable ? 'border-l-green-600' : 'border-l-destructive'} hover:shadow-md transition-shadow`}>
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total Profit</p>
+                    <p className={`text-3xl font-display font-bold ${profitable ? 'text-green-600 dark:text-green-400' : 'text-destructive'}`}>{fmt(totalProfit)}</p>
+                  </div>
+                  <div className={`p-3 rounded-md ${profitable ? 'bg-green-500/10 text-green-600' : 'bg-destructive/10 text-destructive'}`}>
+                    {profitable ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+                  </div>
+                </div>
+                <p className="mt-4 text-xs text-muted-foreground">Revenue − Total Expenses</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card shadow-sm border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Profit Margin</p>
+                    <p className={`text-3xl font-display font-bold ${margin >= 0 ? 'text-foreground' : 'text-destructive'}`}>{margin.toFixed(1)}%</p>
+                  </div>
+                  <div className="p-3 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-md"><Percent className="w-5 h-5" /></div>
+                </div>
+                <p className="mt-4 text-xs text-muted-foreground">{margin >= 20 ? 'Healthy' : margin >= 10 ? 'Acceptable' : margin >= 0 ? 'Tight' : 'At a loss'}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card shadow-sm border-l-4 border-l-amber-500 hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Labor vs Material</p>
+                    <p className="text-3xl font-display font-bold text-foreground">{laborPct.toFixed(0)}<span className="text-xl">%</span></p>
+                  </div>
+                  <div className="p-3 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-md"><Users className="w-5 h-5" /></div>
+                </div>
+                <p className="mt-4 text-xs text-muted-foreground">Labor share of total costs</p>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      })()}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

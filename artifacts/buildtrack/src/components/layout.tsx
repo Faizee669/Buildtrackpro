@@ -14,7 +14,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { LayoutDashboard, HardHat, Receipt, PlusCircle, LogOut, Loader2, FolderPlus, TrendingUp, Building2, Users, Layers } from "lucide-react"
+import { LayoutDashboard, HardHat, Receipt, PlusCircle, LogOut, Loader2, FolderPlus, TrendingUp, Building2, Users, Package } from "lucide-react"
 import { useAuth } from "@workspace/replit-auth-web"
 import { useCurrency, CURRENCIES, type CurrencyCode } from "@/lib/currency-context"
 import { LoginPage } from "@/components/login-page"
@@ -148,9 +148,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
             <SidebarSeparator className="my-3" />
 
-            {/* ── Job & Site Management ── prominent button */}
-            <div className="px-2 group-data-[collapsible=icon]:hidden">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-sidebar-foreground/40 px-1 mb-2">Site Operations</p>
+            {/* ── Site Operations section ── */}
+            <div className="px-2 group-data-[collapsible=icon]:hidden space-y-2">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-sidebar-foreground/40 px-1">Site Operations</p>
               <Link
                 href="/jobs"
                 className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg border transition-all font-bold text-sm ${
@@ -165,23 +165,54 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <span className="text-[10px] font-normal opacity-70">Crew · Phases · Equipment</span>
                 </div>
               </Link>
+              <Link
+                href="/crew"
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md border transition-all font-semibold text-sm ${
+                  location.startsWith('/crew')
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground border-sidebar-border'
+                    : 'border-transparent text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                }`}
+              >
+                <Users className="w-4 h-4 flex-shrink-0" />
+                <span>Crew</span>
+              </Link>
+              <Link
+                href="/inventory"
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md border transition-all font-semibold text-sm ${
+                  location.startsWith('/inventory')
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground border-sidebar-border'
+                    : 'border-transparent text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                }`}
+              >
+                <Package className="w-4 h-4 flex-shrink-0" />
+                <span>Inventory</span>
+              </Link>
             </div>
             {/* Icon-only version */}
-            <div className="hidden group-data-[collapsible=icon]:flex justify-center px-2">
+            <div className="hidden group-data-[collapsible=icon]:flex flex-col gap-2 items-center px-2">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Link
-                    href="/jobs"
-                    className={`p-2.5 rounded-lg border transition-all ${
-                      location.startsWith('/jobs')
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-primary/10 hover:bg-primary/20 text-primary border-primary/30'
-                    }`}
-                  >
+                  <Link href="/jobs" className={`p-2.5 rounded-lg border transition-all ${location.startsWith('/jobs') ? 'bg-primary text-primary-foreground border-primary' : 'bg-primary/10 hover:bg-primary/20 text-primary border-primary/30'}`}>
                     <Building2 className="w-5 h-5" />
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right">Job & Site Management</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/crew" className={`p-2.5 rounded-md transition-colors ${location.startsWith('/crew') ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}`}>
+                    <Users className="w-5 h-5" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">Crew</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/inventory" className={`p-2.5 rounded-md transition-colors ${location.startsWith('/inventory') ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'}`}>
+                    <Package className="w-5 h-5" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">Material Inventory</TooltipContent>
               </Tooltip>
             </div>
           </SidebarContent>

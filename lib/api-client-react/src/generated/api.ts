@@ -2287,3 +2287,205 @@ export function useDeletePhase<TError = ErrorType<unknown>, TContext = unknown>(
   const mutationFn: MutationFunction<void, { id: number }> = ({ id }) => deletePhase(id, requestOptions);
   return useMutation({ mutationFn, ...mutationOptions });
 }
+
+// ─── Crew ───────────────────────────────────────────────────────────────────
+
+export interface CrewMember {
+  id: number;
+  name: string;
+  role: string;
+  dailyRate: number;
+  phone?: string | null;
+  projectId?: number | null;
+  status: string;
+  laborCost: number;
+  createdAt: string;
+}
+
+export interface CreateCrewInput {
+  name: string;
+  role?: string;
+  dailyRate?: number;
+  phone?: string | null;
+  projectId?: number | null;
+  status?: string;
+}
+
+export const getListCrewQueryKey = (projectId?: number) =>
+  projectId ? [`/api/crew`, { projectId }] as const : [`/api/crew`] as const;
+
+export const listCrew = async (projectId?: number, options?: RequestInit): Promise<CrewMember[]> => {
+  const url = projectId ? `/api/crew?projectId=${projectId}` : `/api/crew`;
+  return customFetch<CrewMember[]>(url, { ...options, method: "GET" });
+};
+
+export function useListCrew<TData = CrewMember[], TError = ErrorType<unknown>>(
+  projectId?: number,
+  options?: { query?: UseQueryOptions<CrewMember[], TError, TData> }
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const { query: queryOptions } = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getListCrewQueryKey(projectId);
+  const queryFn: QueryFunction<CrewMember[]> = ({ signal }) => listCrew(projectId, { signal });
+  const q = useQuery({ queryKey, queryFn, ...queryOptions }) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  return { ...q, queryKey };
+}
+
+export const createCrew = async (body: CreateCrewInput): Promise<CrewMember> =>
+  customFetch<CrewMember>(`/api/crew`, { method: "POST", body: JSON.stringify(body) });
+
+export function useCreateCrew<TError = ErrorType<unknown>, TContext = unknown>(
+  options?: { mutation?: UseMutationOptions<CrewMember, TError, { data: CreateCrewInput }, TContext> }
+): UseMutationResult<CrewMember, TError, { data: CreateCrewInput }, TContext> {
+  const { mutation: mutationOptions } = options ?? {};
+  const mutationFn: MutationFunction<CrewMember, { data: CreateCrewInput }> = ({ data }) => createCrew(data);
+  return useMutation({ mutationFn, ...mutationOptions });
+}
+
+export const updateCrew = async (id: number, body: Partial<CreateCrewInput>): Promise<CrewMember> =>
+  customFetch<CrewMember>(`/api/crew/${id}`, { method: "PATCH", body: JSON.stringify(body) });
+
+export function useUpdateCrew<TError = ErrorType<unknown>, TContext = unknown>(
+  options?: { mutation?: UseMutationOptions<CrewMember, TError, { id: number; data: Partial<CreateCrewInput> }, TContext> }
+): UseMutationResult<CrewMember, TError, { id: number; data: Partial<CreateCrewInput> }, TContext> {
+  const { mutation: mutationOptions } = options ?? {};
+  const mutationFn: MutationFunction<CrewMember, { id: number; data: Partial<CreateCrewInput> }> = ({ id, data }) => updateCrew(id, data);
+  return useMutation({ mutationFn, ...mutationOptions });
+}
+
+export const deleteCrew = async (id: number): Promise<void> =>
+  customFetch<void>(`/api/crew/${id}`, { method: "DELETE" });
+
+export function useDeleteCrew<TError = ErrorType<unknown>, TContext = unknown>(
+  options?: { mutation?: UseMutationOptions<void, TError, { id: number }, TContext> }
+): UseMutationResult<void, TError, { id: number }, TContext> {
+  const { mutation: mutationOptions } = options ?? {};
+  const mutationFn: MutationFunction<void, { id: number }> = ({ id }) => deleteCrew(id);
+  return useMutation({ mutationFn, ...mutationOptions });
+}
+
+// ─── Inventory ──────────────────────────────────────────────────────────────
+
+export interface InventoryItem {
+  id: number;
+  name: string;
+  unit: string;
+  quantity: number;
+  costPerUnit: number;
+  reorderLevel: number;
+  vendor?: string | null;
+  projectId?: number | null;
+  totalValue: number;
+  isLow: boolean;
+  createdAt: string;
+}
+
+export interface CreateInventoryInput {
+  name: string;
+  unit?: string;
+  quantity?: number;
+  costPerUnit?: number;
+  reorderLevel?: number;
+  vendor?: string | null;
+  projectId?: number | null;
+}
+
+export const getListInventoryQueryKey = (projectId?: number) =>
+  projectId ? [`/api/inventory`, { projectId }] as const : [`/api/inventory`] as const;
+
+export const listInventory = async (projectId?: number, options?: RequestInit): Promise<InventoryItem[]> => {
+  const url = projectId ? `/api/inventory?projectId=${projectId}` : `/api/inventory`;
+  return customFetch<InventoryItem[]>(url, { ...options, method: "GET" });
+};
+
+export function useListInventory<TData = InventoryItem[], TError = ErrorType<unknown>>(
+  projectId?: number,
+  options?: { query?: UseQueryOptions<InventoryItem[], TError, TData> }
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const { query: queryOptions } = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getListInventoryQueryKey(projectId);
+  const queryFn: QueryFunction<InventoryItem[]> = ({ signal }) => listInventory(projectId, { signal });
+  const q = useQuery({ queryKey, queryFn, ...queryOptions }) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  return { ...q, queryKey };
+}
+
+export const createInventoryItem = async (body: CreateInventoryInput): Promise<InventoryItem> =>
+  customFetch<InventoryItem>(`/api/inventory`, { method: "POST", body: JSON.stringify(body) });
+
+export function useCreateInventory<TError = ErrorType<unknown>, TContext = unknown>(
+  options?: { mutation?: UseMutationOptions<InventoryItem, TError, { data: CreateInventoryInput }, TContext> }
+): UseMutationResult<InventoryItem, TError, { data: CreateInventoryInput }, TContext> {
+  const { mutation: mutationOptions } = options ?? {};
+  const mutationFn: MutationFunction<InventoryItem, { data: CreateInventoryInput }> = ({ data }) => createInventoryItem(data);
+  return useMutation({ mutationFn, ...mutationOptions });
+}
+
+export const updateInventoryItem = async (id: number, body: Partial<CreateInventoryInput>): Promise<InventoryItem> =>
+  customFetch<InventoryItem>(`/api/inventory/${id}`, { method: "PATCH", body: JSON.stringify(body) });
+
+export function useUpdateInventory<TError = ErrorType<unknown>, TContext = unknown>(
+  options?: { mutation?: UseMutationOptions<InventoryItem, TError, { id: number; data: Partial<CreateInventoryInput> }, TContext> }
+): UseMutationResult<InventoryItem, TError, { id: number; data: Partial<CreateInventoryInput> }, TContext> {
+  const { mutation: mutationOptions } = options ?? {};
+  const mutationFn: MutationFunction<InventoryItem, { id: number; data: Partial<CreateInventoryInput> }> = ({ id, data }) => updateInventoryItem(id, data);
+  return useMutation({ mutationFn, ...mutationOptions });
+}
+
+export const deleteInventoryItem = async (id: number): Promise<void> =>
+  customFetch<void>(`/api/inventory/${id}`, { method: "DELETE" });
+
+export function useDeleteInventory<TError = ErrorType<unknown>, TContext = unknown>(
+  options?: { mutation?: UseMutationOptions<void, TError, { id: number }, TContext> }
+): UseMutationResult<void, TError, { id: number }, TContext> {
+  const { mutation: mutationOptions } = options ?? {};
+  const mutationFn: MutationFunction<void, { id: number }> = ({ id }) => deleteInventoryItem(id);
+  return useMutation({ mutationFn, ...mutationOptions });
+}
+
+// ─── Profit / Labor analytics ───────────────────────────────────────────────
+
+export interface ProfitByProject {
+  projectId: number;
+  projectName: string;
+  revenue: number;
+  spent: number;
+  profit: number;
+  profitMargin: number;
+}
+
+export const listProfitByProject = async (): Promise<ProfitByProject[]> =>
+  customFetch<ProfitByProject[]>(`/api/dashboard/profit-by-project`, { method: "GET" });
+
+export function useProfitByProject<TError = ErrorType<unknown>>(
+  options?: { query?: UseQueryOptions<ProfitByProject[], TError, ProfitByProject[]> }
+) {
+  const { query: queryOptions } = options ?? {};
+  const queryKey = [`/api/dashboard/profit-by-project`] as const;
+  const q = useQuery({
+    queryKey,
+    queryFn: ({ signal }) => customFetch<ProfitByProject[]>(`/api/dashboard/profit-by-project`, { method: "GET", signal }),
+    ...queryOptions,
+  }) as UseQueryResult<ProfitByProject[], TError> & { queryKey: QueryKey };
+  return { ...q, queryKey };
+}
+
+export interface LaborVsMaterial { labor: number; material: number; }
+
+export function useLaborVsMaterial<TError = ErrorType<unknown>>() {
+  const queryKey = [`/api/dashboard/labor-vs-material`] as const;
+  const q = useQuery({
+    queryKey,
+    queryFn: ({ signal }) => customFetch<LaborVsMaterial>(`/api/dashboard/labor-vs-material`, { method: "GET", signal }),
+  }) as UseQueryResult<LaborVsMaterial, TError> & { queryKey: QueryKey };
+  return { ...q, queryKey };
+}
+
+export interface TopWorker { crew: string; amount: number; count: number; }
+
+export function useTopWorkers<TError = ErrorType<unknown>>() {
+  const queryKey = [`/api/dashboard/top-workers`] as const;
+  const q = useQuery({
+    queryKey,
+    queryFn: ({ signal }) => customFetch<TopWorker[]>(`/api/dashboard/top-workers`, { method: "GET", signal }),
+  }) as UseQueryResult<TopWorker[], TError> & { queryKey: QueryKey };
+  return { ...q, queryKey };
+}

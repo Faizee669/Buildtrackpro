@@ -6,46 +6,118 @@ const router: IRouter = Router();
 
 // GET /dashboard/stats
 router.get("/dashboard/stats", async (_req, res): Promise<void> => {
-  // Total budget from all active projects
   const [budgetAgg] = await db
-    .select({ total: sql<string>`COALESCE(SUM(budget), 0)` })
+    .select({
+      budget: sql<string>`COALESCE(SUM(budget), 0)`,
+      revenue: sql<string>`COALESCE(SUM(estimated_revenue), 0)`,
+    })
     .from(projectsTable);
 
-  // Total spent overall
   const [spentAgg] = await db
-    .select({ total: sql<string>`COALESCE(SUM(amount), 0)` })
+    .select({
+      total: sql<string>`COALESCE(SUM(amount), 0)`,
+      labor: sql<string>`COALESCE(SUM(CASE WHEN category IN ('Labour','Watchman Salary') THEN amount ELSE 0 END), 0)`,
+    })
     .from(expensesTable);
 
-  // Spent this month
   const [monthAgg] = await db
     .select({ total: sql<string>`COALESCE(SUM(amount), 0)` })
     .from(expensesTable)
-    .where(
-      sql`DATE_TRUNC('month', date::timestamp) = DATE_TRUNC('month', CURRENT_DATE)`
-    );
+    .where(sql`DATE_TRUNC('month', date::timestamp) = DATE_TRUNC('month', CURRENT_DATE)`);
 
-  // Active project count
   const [activeCount] = await db
     .select({ count: sql<string>`COUNT(*)` })
     .from(projectsTable)
     .where(eq(projectsTable.status, "active"));
 
-  // Total expense count
   const [expenseCount] = await db
     .select({ count: sql<string>`COUNT(*)` })
     .from(expensesTable);
 
-  const totalBudget = parseFloat(budgetAgg?.total ?? "0");
+  const totalBudget = parseFloat(budgetAgg?.budget ?? "0");
+  const totalRevenue = parseFloat(budgetAgg?.revenue ?? "0");
   const totalSpent = parseFloat(spentAgg?.total ?? "0");
+  const laborSpent = parseFloat(spentAgg?.labor ?? "0");
+  const materialSpent = Math.max(0, totalSpent - laborSpent);
+  const totalProfit = totalRevenue - totalSpent;
+  const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
 
   res.json({
     totalBudget,
     totalSpent,
+    totalRevenue,
+    totalProfit,
+    profitMargin,
+    laborSpent,
+    materialSpent,
     remainingBudget: totalBudget - totalSpent,
     spentThisMonth: parseFloat(monthAgg?.total ?? "0"),
     activeProjects: parseInt(activeCount?.count ?? "0"),
     totalExpenses: parseInt(expenseCount?.count ?? "0"),
   });
+});
+
+// GET /dashboard/profit-by-project
+router.get("/dashboard/profit-by-project", async (_req, res): Promise<void> => {
+  const results = await db
+    .select({
+      projectId: projectsTable.id,
+      projectName: projectsTable.name,
+      revenue: projectsTable.estimatedRevenue,
+      spent: sql<string>`COALESCE(SUM(${expensesTable.amount}), 0)`,
+    })
+    .from(projectsTable)
+    .leftJoin(expensesTable, eq(expensesTable.projectId, projectsTable.id))
+    .groupBy(projectsTable.id, projectsTable.name, projectsTable.estimatedRevenue)
+    .orderBy(sql`COALESCE(SUM(${expensesTable.amount}), 0) DESC`);
+
+  res.json(results.map(r => {
+    const revenue = parseFloat(r.revenue);
+    const spent = parseFloat(r.spent);
+    const profit = revenue - spent;
+    return {
+      projectId: r.projectId,
+      projectName: r.projectName,
+      revenue,
+      spent,
+      profit,
+      profitMargin: revenue > 0 ? (profit / revenue) * 100 : 0,
+    };
+  }));
+});
+
+// GET /dashboard/labor-vs-material
+router.get("/dashboard/labor-vs-material", async (_req, res): Promise<void> => {
+  const [agg] = await db
+    .select({
+      labor: sql<string>`COALESCE(SUM(CASE WHEN category IN ('Labour','Watchman Salary') THEN amount ELSE 0 END), 0)`,
+      material: sql<string>`COALESCE(SUM(CASE WHEN category NOT IN ('Labour','Watchman Salary') THEN amount ELSE 0 END), 0)`,
+    })
+    .from(expensesTable);
+  res.json({
+    labor: parseFloat(agg?.labor ?? "0"),
+    material: parseFloat(agg?.material ?? "0"),
+  });
+});
+
+// GET /dashboard/top-workers
+router.get("/dashboard/top-workers", async (_req, res): Promise<void> => {
+  const results = await db
+    .select({
+      crew: sql<string>`COALESCE(${expensesTable.crew}, 'Unassigned')`,
+      amount: sql<string>`COALESCE(SUM(${expensesTable.amount}), 0)`,
+      count: sql<string>`COUNT(*)`,
+    })
+    .from(expensesTable)
+    .where(sql`${expensesTable.crew} IS NOT NULL AND ${expensesTable.crew} <> ''`)
+    .groupBy(sql`COALESCE(${expensesTable.crew}, 'Unassigned')`)
+    .orderBy(sql`SUM(${expensesTable.amount}) DESC`)
+    .limit(8);
+  res.json(results.map(r => ({
+    crew: r.crew,
+    amount: parseFloat(r.amount),
+    count: parseInt(r.count),
+  })));
 });
 
 // GET /dashboard/spending-by-category

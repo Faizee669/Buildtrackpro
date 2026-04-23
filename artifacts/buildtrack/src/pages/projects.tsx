@@ -27,6 +27,7 @@ const formSchema = z.object({
   name: z.string().min(2, "Name is required"),
   description: z.string().optional(),
   budget: z.coerce.number().min(1, "Budget must be greater than 0"),
+  estimatedRevenue: z.coerce.number().min(0).default(0),
   startDate: z.string().min(1, "Start date is required"),
   status: z.enum(["active", "completed", "on_hold"])
 });
@@ -58,6 +59,7 @@ export default function Projects() {
       name: "",
       description: "",
       budget: 0,
+      estimatedRevenue: 0,
       startDate: new Date().toISOString().split('T')[0],
       status: "active"
     }
@@ -104,19 +106,26 @@ export default function Projects() {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField control={form.control} name="budget" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Total Budget ($)</FormLabel>
+                      <FormLabel>Total Budget</FormLabel>
                       <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
-                  <FormField control={form.control} name="startDate" render={({ field }) => (
+                  <FormField control={form.control} name="estimatedRevenue" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Start Date</FormLabel>
-                      <FormControl><Input type="date" {...field} /></FormControl>
+                      <FormLabel>Est. Revenue</FormLabel>
+                      <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                 </div>
+                <FormField control={form.control} name="startDate" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Start Date</FormLabel>
+                    <FormControl><Input type="date" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
                 <FormField control={form.control} name="status" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status</FormLabel>

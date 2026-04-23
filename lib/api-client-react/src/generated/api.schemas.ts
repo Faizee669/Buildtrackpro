@@ -220,6 +220,11 @@ export interface DashboardStats {
   spentThisMonth: number;
   activeProjects: number;
   totalExpenses: number;
+  totalRevenue: number;
+  totalProfit: number;
+  profitMargin: number;
+  laborSpent: number;
+  materialSpent: number;
 }
 
 export interface CategorySpending {

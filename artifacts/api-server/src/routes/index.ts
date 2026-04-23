@@ -7,6 +7,8 @@ import phasesRouter from "./phases";
 import dashboardRouter from "./dashboard";
 import aiInsightsRouter from "./ai-insights";
 import analyticsRouter from "./analytics";
+import crewRouter from "./crew";
+import inventoryRouter from "./inventory";
 
 const router: IRouter = Router();
 
@@ -18,5 +20,7 @@ router.use(expensesRouter);
 router.use(dashboardRouter);
 router.use(aiInsightsRouter);
 router.use(analyticsRouter);
+router.use(crewRouter);
+router.use(inventoryRouter);
 
 export default router;
