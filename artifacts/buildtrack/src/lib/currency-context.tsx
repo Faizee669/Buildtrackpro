@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback } from "react"
 
 export const CURRENCIES = [
+  { code: "PKR", label: "PKR", locale: "en-PK", flag: "🇵🇰" },
   { code: "USD", label: "USD", locale: "en-US", flag: "🇺🇸" },
   { code: "INR", label: "INR", locale: "en-IN", flag: "🇮🇳" },
   { code: "EUR", label: "EUR", locale: "de-DE", flag: "🇪🇺" },
@@ -13,7 +14,6 @@ export const CURRENCIES = [
   { code: "BRL", label: "BRL", locale: "pt-BR", flag: "🇧🇷" },
   { code: "MXN", label: "MXN", locale: "es-MX", flag: "🇲🇽" },
   { code: "ZAR", label: "ZAR", locale: "en-ZA", flag: "🇿🇦" },
-  { code: "PKR", label: "PKR", locale: "en-PK", flag: "🇵🇰" },
 ] as const;
 
 export type CurrencyCode = typeof CURRENCIES[number]["code"];
@@ -27,7 +27,7 @@ function getStoredCurrency(): CurrencyCode {
       return stored as CurrencyCode;
     }
   } catch {}
-  return "USD";
+  return "PKR";
 }
 
 interface CurrencyContextValue {
@@ -37,9 +37,9 @@ interface CurrencyContextValue {
 }
 
 const CurrencyContext = createContext<CurrencyContextValue>({
-  currency: "USD",
+  currency: "PKR",
   setCurrency: () => {},
-  fmt: (n) => `$${n.toFixed(2)}`,
+  fmt: (n) => `₨${n.toFixed(0)}`,
 });
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
