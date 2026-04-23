@@ -244,14 +244,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 border-b border-card-border bg-card/80 backdrop-blur-md sticky top-0 z-30">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <SidebarToggleButton />
-            <h1 className="font-bold text-lg text-foreground hidden sm:block truncate">
-              {currentNav?.title ?? "Overview"}
-            </h1>
-            <div className="hidden md:flex items-center bg-muted rounded-full px-4 py-1.5 ml-4 max-w-sm flex-1">
+            <Link href="/dashboard" className="flex items-center gap-2 flex-shrink-0">
+              <div className="bg-primary text-primary-foreground p-1.5 rounded-lg shadow-sm shadow-primary/30">
+                <HardHat className="w-5 h-5" />
+              </div>
+              <span className="hidden sm:inline font-extrabold text-base tracking-tight text-foreground">
+                BuildTrack <span className="text-primary">Pro+</span>
+              </span>
+            </Link>
+            <div className="hidden md:flex items-center bg-muted rounded-full px-4 py-1.5 ml-4 max-w-xs flex-1">
               <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
               <input
                 className="bg-transparent border-none focus:ring-0 focus:outline-none text-sm w-full ml-2 placeholder:text-muted-foreground"
-                placeholder="Search projects, expenses, crew..."
+                placeholder="Search..."
                 type="search"
               />
             </div>
@@ -265,6 +270,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
             </button>
             <CurrencySelector />
+            <Link href="/add-expense" className="hidden sm:block">
+              <button className="gradient-primary text-primary-foreground font-semibold py-2 px-4 rounded-lg shadow-md shadow-primary/20 hover:opacity-95 text-sm flex items-center gap-2">
+                <PlusCircle className="w-4 h-4" />
+                <span className="hidden lg:inline">Add Expense</span>
+              </button>
+            </Link>
             <Link href="/add-expense" className="sm:hidden">
               <button className="bg-primary text-primary-foreground p-2 rounded-md shadow-md">
                 <PlusCircle className="w-5 h-5" />
@@ -272,6 +283,33 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
         </header>
+
+        {/* Horizontal nav tabs */}
+        <nav className="hidden md:flex items-center gap-1 px-4 sm:px-6 lg:px-8 border-b border-card-border bg-card/60 backdrop-blur-md sticky top-16 z-20 overflow-x-auto">
+          {navItems.map((item) => {
+            const active =
+              location === item.url ||
+              (item.url !== "/dashboard" && location.startsWith(item.url))
+            return (
+              <Link
+                key={item.title}
+                href={item.url}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                  active
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30"
+                }`}
+              >
+                <item.icon className="w-4 h-4" />
+                <span>{item.title}</span>
+              </Link>
+            )
+          })}
+          <div className="ml-auto hidden lg:flex items-center text-xs text-muted-foreground font-medium">
+            {currentNav?.title ?? "Overview"}
+          </div>
+        </nav>
+
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto w-full">
           <div className="max-w-7xl mx-auto w-full">{children}</div>
         </main>
