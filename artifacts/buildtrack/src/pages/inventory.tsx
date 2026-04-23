@@ -1,13 +1,11 @@
 import { useMemo, useState } from "react"
 import { useListInventory, useCreateInventory, useUpdateInventory, useDeleteInventory, useListProjects, getListInventoryQueryKey, type InventoryItem } from "@workspace/api-client-react"
 import { useCurrency } from "@/lib/currency-context"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
-import { Badge } from "@/components/ui/badge"
 import { Package, Plus, Trash2, AlertTriangle, Loader2, Pencil, Layers, Boxes } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useToast } from "@/hooks/use-toast"
@@ -117,68 +115,94 @@ export default function InventoryPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card><CardContent className="p-5"><div className="flex justify-between items-start"><div><p className="text-xs uppercase font-semibold text-muted-foreground">Total Items</p><p className="text-2xl font-display font-bold mt-1">{totalSkus}</p></div><Boxes className="w-5 h-5 text-primary" /></div></CardContent></Card>
-        <Card><CardContent className="p-5"><div className="flex justify-between items-start"><div><p className="text-xs uppercase font-semibold text-muted-foreground">Inventory Value</p><p className="text-2xl font-display font-bold mt-1">{fmt(totalValue)}</p></div><Layers className="w-5 h-5 text-amber-500" /></div></CardContent></Card>
-        <Card className={lowStock > 0 ? "border-destructive/50" : ""}><CardContent className="p-5"><div className="flex justify-between items-start"><div><p className="text-xs uppercase font-semibold text-muted-foreground">Low Stock Alerts</p><p className={`text-2xl font-display font-bold mt-1 ${lowStock > 0 ? "text-destructive" : ""}`}>{lowStock}</p></div><AlertTriangle className={`w-5 h-5 ${lowStock > 0 ? "text-destructive" : "text-muted-foreground"}`} /></div></CardContent></Card>
-        <Card><CardContent className="p-5"><div className="flex justify-between items-start"><div><p className="text-xs uppercase font-semibold text-muted-foreground">Top Material</p><p className="text-base font-bold mt-1 truncate">{topItem?.name ?? "—"}</p><p className="text-xs text-muted-foreground">{topItem ? fmt(topItem.totalValue) : "—"}</p></div><Package className="w-5 h-5 text-primary" /></div></CardContent></Card>
-      </div>
+      {(() => {
+        const stat = (label: string, value: string, sub: string | null, icon: React.ReactNode, iconBg: string, iconColor: string, valueColor = "") => (
+          <div className="bg-card p-5 rounded-2xl border border-card-border shadow-sm flex flex-col gap-3">
+            <div className={`p-2 rounded-lg ${iconBg} ${iconColor} self-start`}>{icon}</div>
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{label}</p>
+              <p className={`text-2xl font-bold mt-1 truncate ${valueColor}`}>{value}</p>
+              {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
+            </div>
+          </div>
+        )
+        return (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {stat("Total Items", String(totalSkus), null, <Boxes className="w-5 h-5" />, "bg-orange-50", "text-primary")}
+            {stat("Inventory Value", fmt(totalValue), null, <Layers className="w-5 h-5" />, "bg-amber-50", "text-amber-600")}
+            {stat("Low Stock", String(lowStock), lowStock > 0 ? "Reorder needed" : "All stocked", <AlertTriangle className="w-5 h-5" />, lowStock > 0 ? "bg-red-50" : "bg-emerald-50", lowStock > 0 ? "text-destructive" : "text-emerald-600", lowStock > 0 ? "text-destructive" : "")}
+            {stat("Top Material", topItem?.name ?? "—", topItem ? fmt(topItem.totalValue) : "—", <Package className="w-5 h-5" />, "bg-purple-50", "text-purple-600")}
+          </div>
+        )
+      })()}
 
-      {/* List */}
-      <Card>
-        <CardHeader><CardTitle className="text-base font-semibold">Materials</CardTitle></CardHeader>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="p-12 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" /></div>
-          ) : items?.length === 0 ? (
-            <div className="p-12 text-center">
-              <Package className="w-12 h-12 mx-auto text-muted mb-3" />
-              <p className="font-semibold">No materials tracked yet</p>
-              <p className="text-sm text-muted-foreground">Add your first material to start tracking inventory.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50 text-xs uppercase font-semibold text-muted-foreground">
-                  <tr>
-                    <th className="px-4 py-3 text-left">Material</th>
-                    <th className="px-4 py-3 text-right">Quantity</th>
-                    <th className="px-4 py-3 text-right">Cost / Unit</th>
-                    <th className="px-4 py-3 text-right">Total Value</th>
-                    <th className="px-4 py-3 text-left">Vendor</th>
-                    <th className="px-4 py-3 text-left">Project</th>
-                    <th className="px-4 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {items?.map(it => {
-                    const project = projects?.find(p => p.id === it.projectId)
-                    return (
-                      <tr key={it.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold">{it.name}</span>
-                            {it.isLow && <Badge variant="destructive" className="text-[10px] gap-1"><AlertTriangle className="w-3 h-3" />Low</Badge>}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono">{it.quantity.toLocaleString()} <span className="text-muted-foreground text-xs">{it.unit}</span></td>
-                        <td className="px-4 py-3 text-right font-mono">{fmt(it.costPerUnit)}</td>
-                        <td className="px-4 py-3 text-right font-display font-bold">{fmt(it.totalValue)}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{it.vendor ?? "—"}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{project?.name ?? "—"}</td>
-                        <td className="px-4 py-3 text-right whitespace-nowrap">
-                          <Button size="icon" variant="ghost" onClick={() => handleEdit(it)}><Pencil className="w-4 h-4" /></Button>
-                          <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => { if (confirm(`Delete ${it.name}?`)) deleteMut.mutate({ id: it.id }) }}><Trash2 className="w-4 h-4" /></Button>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Materials list */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-bold">Materials</h2>
+          <span className="text-xs text-muted-foreground">{items?.length ?? 0} items tracked</span>
+        </div>
+        {isLoading ? (
+          <div className="p-12 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" /></div>
+        ) : items?.length === 0 ? (
+          <div className="bg-card rounded-2xl border border-card-border p-12 text-center">
+            <Package className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
+            <p className="font-semibold">No materials tracked yet</p>
+            <p className="text-sm text-muted-foreground">Add your first material to start tracking inventory.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {items?.map(it => {
+              const project = projects?.find(p => p.id === it.projectId)
+              return (
+                <div key={it.id} className="bg-card rounded-2xl p-4 border border-card-border shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4">
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="flex gap-3 min-w-0">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${it.isLow ? "bg-red-50 text-destructive" : "bg-orange-50 text-primary"}`}>
+                        <Package className="w-6 h-6" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-base text-foreground truncate">{it.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {it.quantity.toLocaleString()} {it.unit}
+                          {it.reorderLevel > 0 && <span className="text-xs"> / reorder at {it.reorderLevel}</span>}
+                        </p>
+                        <div className="text-xs text-muted-foreground mt-1 truncate">
+                          {it.vendor && <span>{it.vendor}</span>}
+                          {project && <span>{it.vendor ? " · " : ""}{project.name}</span>}
+                        </div>
+                      </div>
+                    </div>
+                    {it.isLow ? (
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full whitespace-nowrap bg-red-50 text-destructive flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" /> Low
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full whitespace-nowrap bg-emerald-50 text-emerald-700">
+                        In Stock
+                      </span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-card-border">
+                    <div>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Unit Price</p>
+                      <p className="text-sm font-bold text-foreground">{fmt(it.costPerUnit)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Total Value</p>
+                      <p className="text-sm font-bold text-primary">{fmt(it.totalValue)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end gap-1 pt-2 border-t border-card-border -mx-1">
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleEdit(it)} aria-label="Edit"><Pencil className="w-4 h-4" /></Button>
+                    <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => { if (confirm(`Delete ${it.name}?`)) deleteMut.mutate({ id: it.id }) }} aria-label="Delete"><Trash2 className="w-4 h-4" /></Button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

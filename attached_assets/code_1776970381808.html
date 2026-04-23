@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BuildTrack Pro+ | Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#5d5e61",
+                        "inverse-primary": "#ffb59c",
+                        "primary-fixed": "#ffdbcf",
+                        "surface-container-highest": "#d3e4fe",
+                        "surface-tint": "#aa3600",
+                        "on-tertiary-fixed-variant": "#004c6b",
+                        "on-secondary-fixed": "#1a1c1e",
+                        "inverse-on-surface": "#eaf1ff",
+                        "primary-fixed-dim": "#ffb59c",
+                        "on-surface-variant": "#59413a",
+                        "on-secondary-fixed-variant": "#454749",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "on-primary-container": "#fffbff",
+                        "background": "#f8f9ff",
+                        "on-primary-fixed": "#390c00",
+                        "tertiary-fixed-dim": "#81cfff",
+                        "surface-container-low": "#eff4ff",
+                        "on-background": "#0b1c30",
+                        "on-tertiary-container": "#fcfcff",
+                        "surface-dim": "#cbdbf5",
+                        "on-secondary": "#ffffff",
+                        "surface-container": "#e5eeff",
+                        "surface": "#f8f9ff",
+                        "tertiary": "#006389",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#001e2d",
+                        "secondary-fixed": "#e2e2e5",
+                        "on-primary-fixed-variant": "#822800",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "primary": "#a63500",
+                        "surface-variant": "#d3e4fe",
+                        "tertiary-container": "#007dac",
+                        "tertiary-fixed": "#c6e7ff",
+                        "secondary-fixed-dim": "#c6c6c9",
+                        "primary-container": "#c94b18",
+                        "inverse-surface": "#213145",
+                        "outline": "#8c7168",
+                        "on-secondary-container": "#636467",
+                        "on-surface": "#0b1c30",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "secondary-container": "#e2e2e5",
+                        "surface-bright": "#f8f9ff",
+                        "outline-variant": "#e0bfb5",
+                        "surface-container-high": "#dce9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "container-max": "1440px",
+                        "sm": "16px",
+                        "xs": "8px",
+                        "md": "24px",
+                        "base": "4px",
+                        "lg": "32px",
+                        "xxl": "64px",
+                        "xl": "48px"
+                    },
+                    "fontFamily": {
+                        "display": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "h3": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "code": ["monospace"],
+                        "label-caps": ["Inter"],
+                        "h1": ["Inter"],
+                        "h2": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "h3": ["20px", {"lineHeight": "1.4", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "code": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "h2": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sidebar-active { border-right-width: 4px; border-right-color: #a63500; background-color: #fff7ed; color: #a63500; }
+        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid #E2E8F0; }
+        .gradient-primary { background: linear-gradient(180deg, #a63500 0%, #822800 100%); }
+    </style>
+</head>
+<body class="bg-background font-body-md text-on-surface">
+<!-- SideNavBar Shell -->
+<aside class="h-screen w-64 fixed left-0 top-0 border-r border-gray-200 bg-white dark:bg-gray-950 flex flex-col py-6 z-50">
+<div class="px-6 mb-10">
+<h1 class="text-lg font-black tracking-tighter text-[#E8612D]">BuildTrack Pro+</h1>
+<p class="text-[10px] font-label-caps text-secondary uppercase">Construction Management</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-6 py-3 text-[#E8612D] bg-orange-50 border-r-4 border-[#E8612D] transition-all font-medium" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-gray-50 transition-all font-medium" href="#">
+<span class="material-symbols-outlined">architecture</span>
+<span class="text-sm">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-gray-50 transition-all font-medium" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-sm">Expenses</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-gray-50 transition-all font-medium" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm">Crew</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-gray-50 transition-all font-medium" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-sm">Inventory</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-gray-50 transition-all font-medium" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-sm">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-gray-50 transition-all font-medium mt-auto" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm">Settings</span>
+</a>
+</nav>
+</aside>
+<!-- TopNavBar Shell -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 border-b border-gray-200 bg-white/80 backdrop-blur-md z-40 flex items-center justify-between px-8">
+<div class="flex items-center bg-surface-container rounded-full px-4 py-2 w-96">
+<span class="material-symbols-outlined text-secondary text-sm">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full" placeholder="Search projects, expenses, or reports..." type="text"/>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-secondary hover:text-primary transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<button class="text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="h-8 w-[1px] bg-gray-200"></div>
+<div class="flex items-center gap-3 cursor-pointer">
+<div class="text-right hidden lg:block">
+<p class="text-xs font-bold text-on-surface">Alex Mercer</p>
+<p class="text-[10px] text-secondary">Senior Project Manager</p>
+</div>
+<img alt="User avatar" class="h-10 w-10 rounded-full border-2 border-white shadow-sm object-cover" data-alt="Professional portrait of a male construction project manager in a blue button-down shirt with a neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnSgfo9CtUDRNBdAPCgyjIeAEUKxIZ5U2M5Ngk7HuU3OS9xzzlhd5NNS5l39V-31MgVdF0nBICGsKf2Ueml81I7WGXlLtFpsAD0cvCBOp4RECHQhkuEFR427IKPkyip1YohkbRgv3NmnikBWSl2KIsE0QV50aADiGJuM1_oJs3JgWp4F_EM5-RbqrEsdyChDMYJekOQWQcMA4cruClKJ1s624e8UdEVabTHb_-9Yb50SPb6rbzOFzUOP5nZXJAifEUbTNxQi-nbZ2U"/>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="ml-64 mt-16 p-gutter min-h-screen">
+<!-- KPI Row -->
+<section class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-md mb-lg">
+<div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-primary bg-orange-50 p-2 rounded-lg text-xl">payments</span>
+<span class="text-error text-xs font-bold flex items-center">+4.2% <span class="material-symbols-outlined text-xs">trending_up</span></span>
+</div>
+<p class="text-label-caps text-secondary uppercase mt-2">Total Spend</p>
+<h3 class="text-h2 text-on-surface">$2.4M</h3>
+</div>
+<div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-tertiary bg-blue-50 p-2 rounded-lg text-xl">account_balance_wallet</span>
+<span class="text-tertiary text-xs font-bold flex items-center">+12.1% <span class="material-symbols-outlined text-xs">trending_up</span></span>
+</div>
+<p class="text-label-caps text-secondary uppercase mt-2">Total Revenue</p>
+<h3 class="text-h2 text-on-surface">$5.8M</h3>
+</div>
+<div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-green-600 bg-green-50 p-2 rounded-lg text-xl">trending_up</span>
+<span class="text-green-600 text-xs font-bold flex items-center">+8.4% <span class="material-symbols-outlined text-xs">arrow_upward</span></span>
+</div>
+<p class="text-label-caps text-secondary uppercase mt-2">Total Profit</p>
+<h3 class="text-h2 text-on-surface">$3.4M</h3>
+</div>
+<div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-purple-600 bg-purple-50 p-2 rounded-lg text-xl">domain</span>
+<span class="text-secondary text-xs font-bold">14 Total</span>
+</div>
+<p class="text-label-caps text-secondary uppercase mt-2">Active Projects</p>
+<h3 class="text-h2 text-on-surface">12</h3>
+</div>
+<div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="material-symbols-outlined text-secondary bg-gray-50 p-2 rounded-lg text-xl">savings</span>
+<span class="text-error text-xs font-bold flex items-center">-1.2% <span class="material-symbols-outlined text-xs">trending_down</span></span>
+</div>
+<p class="text-label-caps text-secondary uppercase mt-2">Budget Remaining</p>
+<h3 class="text-h2 text-on-surface">$842k</h3>
+</div>
+</section>
+<!-- Middle Row: Charts -->
+<section class="grid grid-cols-5 gap-lg mb-lg">
+<!-- Pie Chart Container -->
+<div class="col-span-2 bg-white p-lg rounded-xl border border-gray-200">
+<div class="flex items-center justify-between mb-lg">
+<h2 class="text-h3">Expense Breakdown</h2>
+<button class="text-secondary hover:text-on-surface"><span class="material-symbols-outlined">more_horiz</span></button>
+</div>
+<div class="flex items-center justify-center h-64 relative">
+<!-- Visual representation of a pie chart -->
+<div class="w-48 h-48 rounded-full border-[24px] border-primary-container relative">
+<div class="absolute inset-0 border-[24px] border-tertiary rounded-full rotate-45 border-t-transparent border-l-transparent"></div>
+<div class="absolute inset-0 border-[24px] border-secondary rounded-full rotate-[120deg] border-t-transparent border-r-transparent border-b-transparent"></div>
+</div>
+<div class="absolute flex flex-col items-center">
+<span class="text-label-caps text-secondary">Total</span>
+<span class="text-h2">$2.4M</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mt-8">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary-container"></div>
+<span class="text-xs text-secondary font-medium">Labor (45%)</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-tertiary"></div>
+<span class="text-xs text-secondary font-medium">Materials (30%)</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-secondary"></div>
+<span class="text-xs text-secondary font-medium">Equipment (15%)</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-gray-200"></div>
+<span class="text-xs text-secondary font-medium">Others (10%)</span>
+</div>
+</div>
+</div>
+<!-- Bar Chart Container -->
+<div class="col-span-3 bg-white p-lg rounded-xl border border-gray-200">
+<div class="flex items-center justify-between mb-lg">
+<h2 class="text-h3">Project Spending Comparison</h2>
+<select class="text-xs font-label-caps border-none bg-surface-container rounded-lg px-3 py-1 focus:ring-0">
+<option>This Month</option>
+<option>Last Quarter</option>
+</select>
+</div>
+<div class="flex items-end justify-between h-64 gap-4 px-4 pt-4">
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-primary-container rounded-t-lg transition-all hover:opacity-80" style="height: 80%;"></div>
+<span class="text-[10px] text-secondary font-bold truncate w-full text-center">Skyline Towers</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-primary-container rounded-t-lg transition-all hover:opacity-80" style="height: 60%;"></div>
+<span class="text-[10px] text-secondary font-bold truncate w-full text-center">Oaks Resid.</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-primary-container rounded-t-lg transition-all hover:opacity-80" style="height: 95%;"></div>
+<span class="text-[10px] text-secondary font-bold truncate w-full text-center">Bridge 41</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-primary-container rounded-t-lg transition-all hover:opacity-80" style="height: 40%;"></div>
+<span class="text-[10px] text-secondary font-bold truncate w-full text-center">Hub North</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-primary-container rounded-t-lg transition-all hover:opacity-80" style="height: 70%;"></div>
+<span class="text-[10px] text-secondary font-bold truncate w-full text-center">Metro Rail</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Full Width Line Chart -->
+<section class="bg-white p-lg rounded-xl border border-gray-200 mb-lg">
+<div class="flex items-center justify-between mb-lg">
+<div>
+<h2 class="text-h3">Expense Trend Over Time</h2>
+<p class="text-xs text-secondary">Historical spending data across all active sites</p>
+</div>
+<div class="flex gap-2">
+<button class="px-4 py-2 bg-surface-container text-xs font-bold rounded-lg">Day</button>
+<button class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg">Month</button>
+<button class="px-4 py-2 bg-surface-container text-xs font-bold rounded-lg">Year</button>
+</div>
+</div>
+<div class="h-64 w-full relative">
+<!-- SVG Line Chart Mockup -->
+<svg class="w-full h-full" viewbox="0 0 1000 200">
+<path d="M0,150 Q100,130 200,160 T400,100 T600,80 T800,120 T1000,40" fill="none" stroke="#a63500" stroke-width="4"></path>
+<path d="M0,150 Q100,130 200,160 T400,100 T600,80 T800,120 T1000,40 V200 H0 Z" fill="url(#grad1)" opacity="0.1"></path>
+<defs>
+<lineargradient id="grad1" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#a63500;stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#a63500;stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+<!-- Grid Lines -->
+<line stroke="#f1f5f9" x1="0" x2="1000" y1="50" y2="50"></line>
+<line stroke="#f1f5f9" x1="0" x2="1000" y1="100" y2="100"></line>
+<line stroke="#f1f5f9" x1="0" x2="1000" y1="150" y2="150"></line>
+</svg>
+<div class="flex justify-between mt-4">
+<span class="text-[10px] font-label-caps text-secondary uppercase">Jan</span>
+<span class="text-[10px] font-label-caps text-secondary uppercase">Feb</span>
+<span class="text-[10px] font-label-caps text-secondary uppercase">Mar</span>
+<span class="text-[10px] font-label-caps text-secondary uppercase">Apr</span>
+<span class="text-[10px] font-label-caps text-secondary uppercase">May</span>
+<span class="text-[10px] font-label-caps text-secondary uppercase">Jun</span>
+<span class="text-[10px] font-label-caps text-secondary uppercase">Jul</span>
+</div>
+</div>
+</section>
+<!-- AI Panel and Small Analytics -->
+<section class="grid grid-cols-3 gap-lg mb-lg">
+<!-- AI Cost Advisor -->
+<div class="col-span-1 bg-gradient-to-br from-indigo-900 to-slate-900 p-lg rounded-xl shadow-xl text-white">
+<div class="flex items-center gap-3 mb-6">
+<div class="bg-white/20 p-2 rounded-lg backdrop-blur-md">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<h2 class="text-h3">AI Cost Advisor</h2>
+</div>
+<div class="space-y-4">
+<div class="bg-white/10 p-4 rounded-lg backdrop-blur-sm border border-white/10">
+<p class="text-sm font-medium">Skyline Towers is <span class="text-orange-400">15% over budget</span> on structural concrete.</p>
+</div>
+<div class="bg-white/10 p-4 rounded-lg backdrop-blur-sm border border-white/10">
+<p class="text-sm font-medium">Labor costs projected to <span class="text-green-400">decrease 8%</span> next week.</p>
+</div>
+<div class="bg-white/10 p-4 rounded-lg backdrop-blur-sm border border-white/10">
+<p class="text-sm font-medium">Potential vendor saving: Switch to <span class="text-blue-400">Apex Steel</span> for -5% costs.</p>
+</div>
+</div>
+<button class="w-full mt-6 py-3 bg-white text-indigo-950 font-bold rounded-lg text-sm hover:bg-gray-100 transition-colors">Generate Full Report</button>
+</div>
+<!-- Labor vs Materials Donut -->
+<div class="col-span-1 bg-white p-lg rounded-xl border border-gray-200">
+<h2 class="text-h3 mb-6">Labor vs Materials</h2>
+<div class="flex items-center justify-center mb-8 h-40">
+<div class="relative w-32 h-32">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#a63500" stroke-dasharray="70, 100" stroke-linecap="round" stroke-width="4"></path>
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#006389" stroke-dasharray="30, 100" stroke-dashoffset="-70" stroke-linecap="round" stroke-width="4"></path>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-xs text-secondary">Ratio</span>
+<span class="text-lg font-bold">2.3:1</span>
+</div>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<span class="text-sm font-medium">Labor Cost</span>
+</div>
+<span class="text-sm font-bold">$1.2M</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-tertiary"></div>
+<span class="text-sm font-medium">Materials Cost</span>
+</div>
+<span class="text-sm font-bold">$0.5M</span>
+</div>
+</div>
+</div>
+<!-- Top Workers -->
+<div class="col-span-1 bg-white p-lg rounded-xl border border-gray-200">
+<h2 class="text-h3 mb-6">Top Workers by Cost</h2>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+<div class="flex items-center gap-3">
+<img alt="Worker" class="h-10 w-10 rounded-full object-cover" data-alt="Close-up portrait of a male construction worker wearing a white hard hat and orange safety vest" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFJ2OTNsu1o0EBCtQP_vVd14o4-NRugFRa2jhyxkbNCg5TxwaGKjWlIiY92PBBfpz1ovQE_luS9vggvV-049jrAQuYtxh7p-5LiVSVRbvgy1nFiiEIaj62IMEtMexNJbCfcMtdFiriYITLbzEoBJybnChvMLYbYBHQnaXu6HB0jGw7rxB-YOjcpQZsfNgUZHAFU0LG0AyIvql8hqOJMMfzgCZC8ZXxwjuqI28Bj6EL6TjFme9-hHlbAmJJhQuglm0GjKQWtI2ROmAb"/>
+<div>
+<p class="text-sm font-bold">James Wilson</p>
+<p class="text-[10px] text-secondary font-label-caps uppercase">Structural Lead</p>
+</div>
+</div>
+<p class="text-sm font-bold">$12,450</p>
+</div>
+<div class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+<div class="flex items-center gap-3">
+<img alt="Worker" class="h-10 w-10 rounded-full object-cover" data-alt="Portrait of a female architect or engineer in professional attire with a clean office background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpDEFQbVFO_AHEZA4K_KJcRlTPnB0NT500GkXf67_BzG1a-mR5537ZPq98ZTTG2OPQhgLmVees02Dih7Mzx3mp8OzCXfVu4awGU6epU7d_z08IJeJDfxkGdA92-Uzyepy5PrS-T6xmcz9Btji_yq5sMfc6eoLlETp8U29IHMMIPS9-vbF5-qfdFWCFzm0PX-YuvshxVu2pq6H2mqKWO5RGcPzqUgO_bJufmbkRJjMoD6w-23CtDzYxpyxqf-D7uBJKsIHIgnWnV8pg"/>
+<div>
+<p class="text-sm font-bold">Sarah Chen</p>
+<p class="text-[10px] text-secondary font-label-caps uppercase">Lead Inspector</p>
+</div>
+</div>
+<p class="text-sm font-bold">$11,200</p>
+</div>
+<div class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+<div class="flex items-center gap-3">
+<img alt="Worker" class="h-10 w-10 rounded-full object-cover" data-alt="Headshot of an older male construction foreman with grey hair and beard, wearing a reflective vest" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7qPWVMCAuOikINudaaUy0Ymu1GKmgJ24diraNgxDoN3qxJxReVy0oHXGFZWxYIUQYQh-XHue7c3ctygbLFlxNFdaabzP64lutyy8LTwvdmqOgCRxSnl6cqe8NMtKasEjkWwC8VEfZwN6FFj_sIpIF7EmEebQDm5refd_vuP78-QEigHOj--CBRPRJ50FuOz5MT0QCnoWdwpPT5U1JE_4uowkWo6Z6VjdFXROgPne_K8Bg_BGAHVTjzk-O2-iJLwZBZ1aPZt1Qn-7h"/>
+<div>
+<p class="text-sm font-bold">Mike Ross</p>
+<p class="text-[10px] text-secondary font-label-caps uppercase">Site Foreman</p>
+</div>
+</div>
+<p class="text-sm font-bold">$10,800</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Recent Expenses Table -->
+<section class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-xl">
+<div class="p-lg border-b border-gray-100 flex items-center justify-between">
+<h2 class="text-h3">Recent Expenses</h2>
+<div class="flex gap-2">
+<button class="px-3 py-1.5 text-xs border border-gray-200 rounded-lg font-bold hover:bg-gray-50 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">filter_list</span> Filter
+                    </button>
+<button class="px-3 py-1.5 text-xs border border-gray-200 rounded-lg font-bold hover:bg-gray-50 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">download</span> Export
+                    </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-gray-50 border-b border-gray-100">
+<tr>
+<th class="px-lg py-4 text-label-caps text-secondary uppercase font-bold text-[10px]">Date</th>
+<th class="px-lg py-4 text-label-caps text-secondary uppercase font-bold text-[10px]">Project</th>
+<th class="px-lg py-4 text-label-caps text-secondary uppercase font-bold text-[10px]">Category</th>
+<th class="px-lg py-4 text-label-caps text-secondary uppercase font-bold text-[10px]">Vendor</th>
+<th class="px-lg py-4 text-label-caps text-secondary uppercase font-bold text-[10px]">Amount</th>
+<th class="px-lg py-4 text-label-caps text-secondary uppercase font-bold text-[10px]">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-100">
+<tr class="hover:bg-gray-50 transition-colors group cursor-pointer">
+<td class="px-lg py-4 text-sm font-medium">Oct 24, 2023</td>
+<td class="px-lg py-4 text-sm font-bold">Skyline Towers</td>
+<td class="px-lg py-4">
+<span class="bg-orange-50 text-orange-700 text-[10px] font-bold px-2 py-1 rounded">Materials</span>
+</td>
+<td class="px-lg py-4 text-sm text-secondary">Global Concrete Inc.</td>
+<td class="px-lg py-4 text-sm font-bold">$42,500.00</td>
+<td class="px-lg py-4">
+<span class="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full">Approved</span>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 transition-colors group cursor-pointer">
+<td class="px-lg py-4 text-sm font-medium">Oct 23, 2023</td>
+<td class="px-lg py-4 text-sm font-bold">Oaks Residential</td>
+<td class="px-lg py-4">
+<span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-1 rounded">Labor</span>
+</td>
+<td class="px-lg py-4 text-sm text-secondary">ProContractor Services</td>
+<td class="px-lg py-4 text-sm font-bold">$12,800.00</td>
+<td class="px-lg py-4">
+<span class="bg-yellow-50 text-yellow-700 text-[10px] font-bold px-2 py-1 rounded-full">Pending</span>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 transition-colors group cursor-pointer">
+<td class="px-lg py-4 text-sm font-medium">Oct 22, 2023</td>
+<td class="px-lg py-4 text-sm font-bold">Bridge 41</td>
+<td class="px-lg py-4">
+<span class="bg-purple-50 text-purple-700 text-[10px] font-bold px-2 py-1 rounded">Equipment</span>
+</td>
+<td class="px-lg py-4 text-sm text-secondary">RentalHub Pro</td>
+<td class="px-lg py-4 text-sm font-bold">$5,400.00</td>
+<td class="px-lg py-4">
+<span class="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full">Approved</span>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 transition-colors group cursor-pointer">
+<td class="px-lg py-4 text-sm font-medium">Oct 22, 2023</td>
+<td class="px-lg py-4 text-sm font-bold">Metro Rail</td>
+<td class="px-lg py-4">
+<span class="bg-orange-50 text-orange-700 text-[10px] font-bold px-2 py-1 rounded">Materials</span>
+</td>
+<td class="px-lg py-4 text-sm text-secondary">Steel Dynamics</td>
+<td class="px-lg py-4 text-sm font-bold">$89,200.00</td>
+<td class="px-lg py-4">
+<span class="bg-yellow-50 text-yellow-700 text-[10px] font-bold px-2 py-1 rounded-full">Pending</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed bottom-8 right-8 gradient-primary text-white flex items-center gap-2 px-6 py-4 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+<span class="font-bold text-sm">Add Expense</span>
+</button>
+</body></html>

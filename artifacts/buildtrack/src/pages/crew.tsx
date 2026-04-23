@@ -148,12 +148,27 @@ export default function CrewPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card><CardContent className="p-5"><div className="flex justify-between items-start"><div><p className="text-xs uppercase font-semibold text-muted-foreground">Total Crew</p><p className="text-2xl font-display font-bold mt-1">{totalCrew}</p></div><Users className="w-5 h-5 text-primary" /></div></CardContent></Card>
-        <Card><CardContent className="p-5"><div className="flex justify-between items-start"><div><p className="text-xs uppercase font-semibold text-muted-foreground">Active</p><p className="text-2xl font-display font-bold mt-1">{activeCount}</p></div><Briefcase className="w-5 h-5 text-green-500" /></div></CardContent></Card>
-        <Card><CardContent className="p-5"><div className="flex justify-between items-start"><div><p className="text-xs uppercase font-semibold text-muted-foreground">Daily Wage Bill</p><p className="text-2xl font-display font-bold mt-1">{fmt(totalDailyRate)}</p></div><DollarSign className="w-5 h-5 text-amber-500" /></div></CardContent></Card>
-        <Card><CardContent className="p-5"><div className="flex justify-between items-start"><div><p className="text-xs uppercase font-semibold text-muted-foreground">Labor Spent</p><p className="text-2xl font-display font-bold mt-1">{fmt(totalLaborCost)}</p></div><TrendingUp className="w-5 h-5 text-primary" /></div></CardContent></Card>
-      </div>
+      {(() => {
+        const stat = (label: string, value: string, icon: React.ReactNode, iconBg: string, iconColor: string) => (
+          <div className="bg-card p-5 rounded-2xl border border-card-border shadow-sm flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className={`p-2 rounded-lg ${iconBg} ${iconColor}`}>{icon}</div>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{label}</p>
+              <p className="text-2xl font-bold mt-1 truncate">{value}</p>
+            </div>
+          </div>
+        )
+        return (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {stat("Total Crew", String(totalCrew), <Users className="w-5 h-5" />, "bg-orange-50", "text-primary")}
+            {stat("Active", String(activeCount), <Briefcase className="w-5 h-5" />, "bg-emerald-50", "text-emerald-600")}
+            {stat("Daily Wage Bill", fmt(totalDailyRate), <DollarSign className="w-5 h-5" />, "bg-amber-50", "text-amber-600")}
+            {stat("Labor Spent", fmt(totalLaborCost), <TrendingUp className="w-5 h-5" />, "bg-blue-50", "text-blue-600")}
+          </div>
+        )
+      })()}
 
       {/* Top workers chart */}
       {chartData.length > 0 && (
@@ -175,55 +190,67 @@ export default function CrewPage() {
       )}
 
       {/* Crew list */}
-      <Card>
-        <CardHeader><CardTitle className="text-base font-semibold">Crew Roster</CardTitle></CardHeader>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="p-12 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" /></div>
-          ) : crew?.length === 0 ? (
-            <div className="p-12 text-center">
-              <Users className="w-12 h-12 mx-auto text-muted mb-3" />
-              <p className="font-semibold">No crew members yet</p>
-              <p className="text-sm text-muted-foreground">Add your first worker to start tracking labor costs.</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {crew?.map(c => {
-                const project = projects?.find(p => p.id === c.projectId)
-                return (
-                  <div key={c.id} className="flex items-center justify-between gap-4 p-4 hover:bg-muted/30 transition-colors">
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold flex-shrink-0">
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-bold">Personnel</h2>
+          <span className="text-xs text-muted-foreground">{crew?.length ?? 0} members</span>
+        </div>
+        {isLoading ? (
+          <div className="p-12 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" /></div>
+        ) : crew?.length === 0 ? (
+          <div className="bg-card rounded-2xl border border-card-border p-12 text-center">
+            <Users className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
+            <p className="font-semibold">No crew members yet</p>
+            <p className="text-sm text-muted-foreground">Add your first worker to start tracking labor costs.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {crew?.map(c => {
+              const project = projects?.find(p => p.id === c.projectId)
+              const isActive = c.status === "active"
+              return (
+                <div key={c.id} className="bg-card rounded-2xl p-4 border border-card-border shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4">
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="flex gap-3 min-w-0">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-base flex-shrink-0">
                         {c.name.split(" ").map(p => p[0]).slice(0, 2).join("").toUpperCase()}
                       </div>
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold truncate">{c.name}</span>
-                          <Badge className={`${ROLE_COLORS[c.role] || ROLE_COLORS.laborer} border-0 capitalize text-[10px]`}>{c.role}</Badge>
-                          {c.status === "inactive" && <Badge variant="outline" className="text-[10px]">Inactive</Badge>}
-                        </div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-3 mt-0.5">
-                          <span>{fmt(c.dailyRate)}/day</span>
+                        <h3 className="font-bold text-base text-foreground truncate">{c.name}</h3>
+                        <p className="text-sm text-muted-foreground capitalize">{c.role}</p>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                           {c.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{c.phone}</span>}
-                          {project && <span>· {project.name}</span>}
+                          {project && <span className="truncate">· {project.name}</span>}
                         </div>
                       </div>
                     </div>
-                    <div className="text-right flex items-center gap-3">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Logged labor</p>
-                        <p className="font-display font-bold">{fmt(c.laborCost)}</p>
-                      </div>
-                      <Button size="icon" variant="ghost" onClick={() => handleEdit(c)}><Pencil className="w-4 h-4" /></Button>
-                      <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => { if (confirm(`Remove ${c.name}?`)) deleteMut.mutate({ id: c.id }) }}><Trash2 className="w-4 h-4" /></Button>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full whitespace-nowrap ${isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+                      {isActive ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-card-border">
+                    <div>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Daily Rate</p>
+                      <p className="text-sm font-bold text-foreground">{fmt(c.dailyRate)}/day</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Total Cost</p>
+                      <p className="text-sm font-bold text-primary">{fmt(c.laborCost)}</p>
                     </div>
                   </div>
-                )
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  <div className="flex items-center justify-between pt-2 border-t border-card-border -mx-1">
+                    <Badge className={`${ROLE_COLORS[c.role] || ROLE_COLORS.laborer} border-0 capitalize text-[10px]`}>{c.role}</Badge>
+                    <div className="flex gap-1">
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleEdit(c)} aria-label="Edit"><Pencil className="w-4 h-4" /></Button>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => { if (confirm(`Remove ${c.name}?`)) deleteMut.mutate({ id: c.id }) }} aria-label="Delete"><Trash2 className="w-4 h-4" /></Button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -3,7 +3,7 @@ import { CATEGORY_COLORS } from "@/lib/utils"
 import { useCurrency } from "@/lib/currency-context"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, CartesianGrid, Legend } from "recharts"
-import { Receipt, HardHat, TrendingDown, DollarSign, ArrowRight, Loader2, Wallet, Sparkles, RefreshCw, AlertTriangle, Lightbulb, Info, TrendingUp, Users, Banknote, Percent } from "lucide-react"
+import { Receipt, HardHat, TrendingDown, DollarSign, ArrowRight, Loader2, Wallet, Sparkles, RefreshCw, AlertTriangle, Lightbulb, Info, TrendingUp, Banknote } from "lucide-react"
 import { Link } from "wouter"
 import { Button } from "@/components/ui/button"
 import { format, parseISO } from "date-fns"
@@ -18,9 +18,10 @@ export default function Dashboard() {
   const { data: recent, isLoading: recentLoading } = useGetRecentExpenses();
   const { data: topVendors, isLoading: vendorsLoading } = useGetTopVendors();
   const { data: aiInsights, isLoading: aiLoading, refetch: refetchAI } = useGetAiInsights({ query: { staleTime: 0, refetchOnMount: false, enabled: false } });
-  const { data: laborVsMaterial } = useLaborVsMaterial();
-  const { data: topWorkers } = useTopWorkers();
-  const { data: profitByProject } = useProfitByProject();
+  // Pro+ analytics (kept for future Labor vs Materials donut + top workers section)
+  useLaborVsMaterial();
+  useTopWorkers();
+  useProfitByProject();
 
   const isLoading = statsLoading || catLoading || projLoading || trendLoading || recentLoading;
 
@@ -57,20 +58,20 @@ export default function Dashboard() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
       {/* Dashboard header with Quick Add */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">Overview of your project finances</p>
+          <h1 className="text-2xl font-bold tracking-tight">Project Overview</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">Real-time finances across all your job sites</p>
         </div>
         <div className="flex gap-2">
           <QuickAddDialog defaultTab="expense">
-            <Button size="lg" className="gap-2 font-bold shadow-lg shadow-primary/20 hover-elevate active-elevate-2">
+            <Button size="lg" className="gap-2 font-semibold gradient-primary text-primary-foreground rounded-lg shadow-md shadow-primary/20 hover:opacity-95">
               <Receipt className="w-4 h-4" />
               Add Expense
             </Button>
           </QuickAddDialog>
           <QuickAddDialog defaultTab="project">
-            <Button size="lg" variant="outline" className="gap-2 font-semibold hover-elevate">
+            <Button size="lg" variant="outline" className="gap-2 font-semibold rounded-lg border-card-border hover-elevate">
               <HardHat className="w-4 h-4" />
               New Project
             </Button>
@@ -78,163 +79,98 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Profit Snapshot — answers "Are we making money?" */}
+      {/* KPI Row — 5 cards (icon-chip top-left, change indicator top-right) */}
       {(() => {
         const totalRevenue = stats.totalRevenue ?? 0;
         const totalProfit = stats.totalProfit ?? (totalRevenue - stats.totalSpent);
         const margin = stats.profitMargin ?? (totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0);
-        const laborSpent = stats.laborSpent ?? 0;
-        const materialSpent = stats.materialSpent ?? 0;
-        const totalCost = laborSpent + materialSpent;
-        const laborPct = totalCost > 0 ? (laborSpent / totalCost) * 100 : 0;
         const profitable = totalProfit >= 0;
+
+        type KpiProps = { label: string; value: string; icon: React.ReactNode; iconBg: string; iconColor: string; change?: { text: string; positive: boolean }; footer?: React.ReactNode };
+        const Kpi = ({ label, value, icon, iconBg, iconColor, change, footer }: KpiProps) => (
+          <div className="bg-card p-5 rounded-2xl border border-card-border shadow-sm hover:shadow-md transition-shadow flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className={`p-2 rounded-lg ${iconBg} ${iconColor}`}>{icon}</div>
+              {change && (
+                <span className={`text-xs font-bold ${change.positive ? 'text-emerald-600' : 'text-destructive'}`}>{change.text}</span>
+              )}
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{label}</p>
+              <h3 className="text-2xl font-bold text-foreground mt-1 truncate">{value}</h3>
+            </div>
+            {footer}
+          </div>
+        );
+
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="bg-card shadow-sm border-l-4 border-l-emerald-500 hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total Revenue</p>
-                    <p className="text-3xl font-display font-bold text-foreground">{fmt(totalRevenue)}</p>
-                  </div>
-                  <div className="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md"><Banknote className="w-5 h-5" /></div>
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            <Kpi
+              label="Total Spent"
+              value={fmt(stats.totalSpent)}
+              icon={<DollarSign className="w-5 h-5" />}
+              iconBg="bg-orange-50"
+              iconColor="text-primary"
+              footer={<p className="text-xs text-muted-foreground">of {fmt(stats.totalBudget)} budget</p>}
+            />
+            <Kpi
+              label="Total Revenue"
+              value={fmt(totalRevenue)}
+              icon={<Banknote className="w-5 h-5" />}
+              iconBg="bg-blue-50"
+              iconColor="text-blue-600"
+              footer={<p className="text-xs text-muted-foreground">Estimated, all projects</p>}
+            />
+            <Kpi
+              label="Total Profit"
+              value={fmt(totalProfit)}
+              icon={profitable ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+              iconBg={profitable ? "bg-emerald-50" : "bg-red-50"}
+              iconColor={profitable ? "text-emerald-600" : "text-destructive"}
+              change={{ text: `${margin.toFixed(1)}%`, positive: profitable }}
+              footer={<p className="text-xs text-muted-foreground">Revenue − Expenses</p>}
+            />
+            <Kpi
+              label="Active Projects"
+              value={String(stats.activeProjects)}
+              icon={<HardHat className="w-5 h-5" />}
+              iconBg="bg-purple-50"
+              iconColor="text-purple-600"
+              footer={
+                <Link href="/projects" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
+                  View all <ArrowRight className="w-3 h-3" />
+                </Link>
+              }
+            />
+            <Kpi
+              label="Budget Remaining"
+              value={fmt(stats.remainingBudget)}
+              icon={<Wallet className="w-5 h-5" />}
+              iconBg="bg-amber-50"
+              iconColor="text-amber-600"
+              footer={
+                <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full transition-all ${budgetProgress > 90 ? 'bg-destructive' : budgetProgress > 80 ? 'bg-amber-500' : 'bg-primary'}`}
+                    style={{ width: `${Math.min(budgetProgress, 100)}%` }}
+                  />
                 </div>
-                <p className="mt-4 text-xs text-muted-foreground">Estimated across all projects</p>
-              </CardContent>
-            </Card>
-            <Card className={`bg-card shadow-sm border-l-4 ${profitable ? 'border-l-green-600' : 'border-l-destructive'} hover:shadow-md transition-shadow`}>
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total Profit</p>
-                    <p className={`text-3xl font-display font-bold ${profitable ? 'text-green-600 dark:text-green-400' : 'text-destructive'}`}>{fmt(totalProfit)}</p>
-                  </div>
-                  <div className={`p-3 rounded-md ${profitable ? 'bg-green-500/10 text-green-600' : 'bg-destructive/10 text-destructive'}`}>
-                    {profitable ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
-                  </div>
-                </div>
-                <p className="mt-4 text-xs text-muted-foreground">Revenue − Total Expenses</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card shadow-sm border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Profit Margin</p>
-                    <p className={`text-3xl font-display font-bold ${margin >= 0 ? 'text-foreground' : 'text-destructive'}`}>{margin.toFixed(1)}%</p>
-                  </div>
-                  <div className="p-3 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-md"><Percent className="w-5 h-5" /></div>
-                </div>
-                <p className="mt-4 text-xs text-muted-foreground">{margin >= 20 ? 'Healthy' : margin >= 10 ? 'Acceptable' : margin >= 0 ? 'Tight' : 'At a loss'}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card shadow-sm border-l-4 border-l-amber-500 hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Labor vs Material</p>
-                    <p className="text-3xl font-display font-bold text-foreground">{laborPct.toFixed(0)}<span className="text-xl">%</span></p>
-                  </div>
-                  <div className="p-3 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-md"><Users className="w-5 h-5" /></div>
-                </div>
-                <p className="mt-4 text-xs text-muted-foreground">Labor share of total costs</p>
-              </CardContent>
-            </Card>
+              }
+            />
           </div>
         );
       })()}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-card shadow-sm border-l-4 border-l-primary hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start">
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total Spent</p>
-                <p className="text-3xl font-display font-bold text-foreground">{fmt(stats.totalSpent)}</p>
-              </div>
-              <div className="p-3 bg-primary/10 text-primary rounded-md">
-                <DollarSign className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">of {fmt(stats.totalBudget)} budget</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card shadow-sm border-l-4 border-l-secondary hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start">
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Remaining</p>
-                <p className="text-3xl font-display font-bold text-foreground">{fmt(stats.remainingBudget)}</p>
-              </div>
-              <div className="p-3 bg-secondary/10 text-secondary-foreground rounded-md">
-                <Wallet className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-4 w-full bg-secondary/20 h-2 rounded-full overflow-hidden">
-              <div 
-                className={`h-full transition-all ${budgetProgress > 90 ? 'bg-destructive' : budgetProgress > 80 ? 'bg-amber-500' : 'bg-primary'}`} 
-                style={{ width: `${Math.min(budgetProgress, 100)}%` }} 
-              />
-            </div>
-            {budgetProgress > 80 && (
-              <p className="text-xs text-amber-500 mt-1 flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3" /> {budgetProgress.toFixed(0)}% budget used
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card shadow-sm border-l-4 border-l-accent hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start">
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Spent This Month</p>
-                <p className="text-3xl font-display font-bold text-foreground">{fmt(stats.spentThisMonth)}</p>
-              </div>
-              <div className="p-3 bg-accent/20 text-accent-foreground rounded-md">
-                <TrendingDown className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-              Across {stats.totalExpenses} total transactions
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card shadow-sm border-l-4 border-l-muted-foreground hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start">
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Active Projects</p>
-                <p className="text-3xl font-display font-bold text-foreground">{stats.activeProjects}</p>
-              </div>
-              <div className="p-3 bg-muted text-muted-foreground rounded-md">
-                <HardHat className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center gap-2 text-sm">
-              <Link href="/projects" className="text-primary font-medium flex items-center hover:underline">
-                View all projects <ArrowRight className="w-4 h-4 ml-1" />
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* AI Cost Advisor */}
-      <Card className="shadow-sm border border-border bg-gradient-to-br from-card to-secondary/10">
-        <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
+      {/* AI Cost Advisor — dark indigo card */}
+      <div className="ai-advisor-card p-6 lg:p-8 rounded-2xl shadow-xl text-white">
+        <div className="flex items-start justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-md">
-              <Sparkles className="w-5 h-5 text-primary" />
+            <div className="bg-white/15 p-2.5 rounded-xl backdrop-blur-md border border-white/10">
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
-              <CardTitle className="text-lg">AI Cost Advisor</CardTitle>
-              <CardDescription>AI-powered insights from your spending patterns</CardDescription>
+              <h2 className="text-lg font-bold text-white">AI Cost Advisor</h2>
+              <p className="text-sm text-white/60">Live insights from your spending patterns</p>
             </div>
           </div>
           <Button
@@ -242,40 +178,42 @@ export default function Dashboard() {
             size="sm"
             onClick={() => refetchAI()}
             disabled={aiLoading}
-            className="gap-2"
+            className="gap-2 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white rounded-lg"
           >
             <RefreshCw className={`w-4 h-4 ${aiLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-        </CardHeader>
-        <CardContent>
-          {aiLoading ? (
-            <div className="flex items-center gap-3 py-4 text-muted-foreground">
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Analyzing your spending patterns...</span>
-            </div>
-          ) : aiInsights?.insights && aiInsights.insights.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {aiInsights.insights.map((insight, i) => (
-                <div key={i} className={`flex items-start gap-3 p-3 rounded-lg border ${insightStyle(insight.type)}`}>
-                  {insightIcon(insight.type)}
-                  <p className="text-sm text-foreground leading-relaxed">{insight.text}</p>
+        </div>
+        {aiLoading ? (
+          <div className="flex items-center gap-3 py-6 text-white/70">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            <span>Analyzing your spending patterns...</span>
+          </div>
+        ) : aiInsights?.insights && aiInsights.insights.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {aiInsights.insights.slice(0, 6).map((insight, i) => {
+              const accent =
+                insight.type === 'warning' ? 'text-orange-300' : insight.type === 'tip' ? 'text-emerald-300' : 'text-sky-300';
+              return (
+                <div key={i} className="bg-white/10 p-4 rounded-xl backdrop-blur-sm border border-white/10 flex items-start gap-3">
+                  <span className={`flex-shrink-0 mt-0.5 ${accent}`}>{insightIcon(insight.type)}</span>
+                  <p className="text-sm text-white/90 leading-relaxed">{insight.text}</p>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="py-4 text-center text-muted-foreground">
-              <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-20" />
-              <p className="text-sm">Click "Refresh" to generate AI insights from your data.</p>
-            </div>
-          )}
-          {aiInsights?.generatedAt && (
-            <p className="text-xs text-muted-foreground mt-3">
-              Generated {format(parseISO(aiInsights.generatedAt), "MMM d 'at' h:mm a")}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="py-8 text-center text-white/60">
+            <Sparkles className="w-10 h-10 mx-auto mb-2 opacity-30" />
+            <p className="text-sm">Click "Refresh" to generate AI insights from your data.</p>
+          </div>
+        )}
+        {aiInsights?.generatedAt && (
+          <p className="text-xs text-white/40 mt-4">
+            Generated {format(parseISO(aiInsights.generatedAt), "MMM d 'at' h:mm a")}
+          </p>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Category Pie Chart */}
