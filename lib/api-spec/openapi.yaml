@@ -532,6 +532,21 @@ paths:
                 items:
                   $ref: "#/components/schemas/Expense"
 
+  /dashboard/project-cards:
+    get:
+      operationId: getProjectCards
+      tags: [dashboard]
+      summary: Get rich per-project dashboard cards (active projects, with this-week spend, margin, category breakdown)
+      responses:
+        "200":
+          description: Per-project dashboard cards
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProjectCard"
+
   /dashboard/top-vendors:
     get:
       operationId: getTopVendors
@@ -546,6 +561,230 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/VendorSpending"
+
+  /projects/{projectId}/phases:
+    get:
+      operationId: listPhases
+      tags: [phases]
+      summary: List phases for a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: List of phases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Phase"
+    post:
+      operationId: createPhase
+      tags: [phases]
+      summary: Create a phase for a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePhaseBody"
+      responses:
+        "201":
+          description: Created phase
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Phase"
+
+  /phases/{id}:
+    patch:
+      operationId: updatePhase
+      tags: [phases]
+      summary: Update a phase
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePhaseBody"
+      responses:
+        "200":
+          description: Updated phase
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Phase"
+    delete:
+      operationId: deletePhase
+      tags: [phases]
+      summary: Delete a phase
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Phase deleted
+
+  /crew:
+    get:
+      operationId: listCrew
+      tags: [crew]
+      summary: List crew members (optionally filter by project)
+      parameters:
+        - name: projectId
+          in: query
+          required: false
+          schema: { type: integer }
+      responses:
+        "200":
+          description: List of crew members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CrewMember"
+    post:
+      operationId: createCrew
+      tags: [crew]
+      summary: Create a crew member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCrewBody"
+      responses:
+        "201":
+          description: Created crew member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrewMember"
+
+  /crew/{id}:
+    patch:
+      operationId: updateCrew
+      tags: [crew]
+      summary: Update a crew member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCrewBody"
+      responses:
+        "200":
+          description: Updated crew member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrewMember"
+    delete:
+      operationId: deleteCrew
+      tags: [crew]
+      summary: Delete a crew member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Crew member deleted
+
+  /inventory:
+    get:
+      operationId: listInventory
+      tags: [inventory]
+      summary: List inventory items (optionally filter by project)
+      parameters:
+        - name: projectId
+          in: query
+          required: false
+          schema: { type: integer }
+      responses:
+        "200":
+          description: List of inventory items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InventoryItem"
+    post:
+      operationId: createInventory
+      tags: [inventory]
+      summary: Create an inventory item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInventoryItemBody"
+      responses:
+        "201":
+          description: Created inventory item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItem"
+
+  /inventory/{id}:
+    patch:
+      operationId: updateInventory
+      tags: [inventory]
+      summary: Update an inventory item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateInventoryItemBody"
+      responses:
+        "200":
+          description: Updated inventory item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItem"
+    delete:
+      operationId: deleteInventory
+      tags: [inventory]
+      summary: Delete an inventory item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Inventory item deleted
 
   /ai-insights:
     get:
@@ -667,6 +906,8 @@ components:
           type: string
         description:
           type: ["string", "null"]
+        location:
+          type: ["string", "null"]
         budget:
           type: number
         startDate:
@@ -697,6 +938,8 @@ components:
           type: string
         description:
           type: ["string", "null"]
+        location:
+          type: ["string", "null"]
         budget:
           type: number
         startDate:
@@ -717,6 +960,8 @@ components:
           type: string
         description:
           type: ["string", "null"]
+        location:
+          type: ["string", "null"]
         budget:
           type: number
         startDate:
@@ -724,6 +969,160 @@ components:
         status:
           type: string
           enum: [active, completed, on_hold]
+
+    ProjectCardCategory:
+      type: object
+      required: [category, amount, percent]
+      properties:
+        category:
+          type: string
+        amount:
+          type: number
+        percent:
+          type: number
+
+    ProjectCard:
+      type: object
+      required:
+        - id
+        - name
+        - status
+        - budget
+        - totalSpent
+        - laborSpent
+        - thisWeekSpent
+        - profitMargin
+        - daysActive
+        - categories
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        location:
+          type: ["string", "null"]
+        status:
+          type: string
+        budget:
+          type: number
+        totalSpent:
+          type: number
+        laborSpent:
+          type: number
+        laborBudget:
+          type: number
+        thisWeekSpent:
+          type: number
+        profitMargin:
+          type: number
+        daysActive:
+          type: integer
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectCardCategory"
+
+    Phase:
+      type: object
+      required: [id, projectId, name, status, createdAt, totalExpenses, expenseCount]
+      properties:
+        id: { type: integer }
+        projectId: { type: integer }
+        name: { type: string }
+        description: { type: ["string", "null"] }
+        status: { type: string }
+        createdAt: { type: string }
+        totalExpenses: { type: number }
+        expenseCount: { type: integer }
+
+    CreatePhaseBody:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        description: { type: ["string", "null"] }
+        status: { type: string }
+
+    UpdatePhaseBody:
+      type: object
+      properties:
+        name: { type: string }
+        description: { type: ["string", "null"] }
+        status: { type: string }
+
+    CrewMember:
+      type: object
+      required: [id, name, role, dailyRate, status, createdAt, laborCost]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        role: { type: string }
+        dailyRate: { type: number }
+        phone: { type: ["string", "null"] }
+        projectId: { type: ["integer", "null"] }
+        status: { type: string }
+        createdAt: { type: string }
+        laborCost: { type: number }
+
+    CreateCrewBody:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        role: { type: string }
+        dailyRate: { type: number }
+        phone: { type: ["string", "null"] }
+        projectId: { type: ["integer", "null"] }
+        status: { type: string }
+
+    UpdateCrewBody:
+      type: object
+      properties:
+        name: { type: string }
+        role: { type: string }
+        dailyRate: { type: number }
+        phone: { type: ["string", "null"] }
+        projectId: { type: ["integer", "null"] }
+        status: { type: string }
+
+    InventoryItem:
+      type: object
+      required: [id, name, unit, quantity, costPerUnit, reorderLevel, totalValue, isLow, createdAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        unit: { type: string }
+        quantity: { type: number }
+        costPerUnit: { type: number }
+        reorderLevel: { type: number }
+        vendor: { type: ["string", "null"] }
+        projectId: { type: ["integer", "null"] }
+        totalValue: { type: number }
+        isLow: { type: boolean }
+        createdAt: { type: string }
+
+    CreateInventoryItemBody:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        unit: { type: string }
+        quantity: { type: number }
+        costPerUnit: { type: number }
+        reorderLevel: { type: number }
+        vendor: { type: ["string", "null"] }
+        projectId: { type: ["integer", "null"] }
+
+    UpdateInventoryItemBody:
+      type: object
+      properties:
+        name: { type: string }
+        unit: { type: string }
+        quantity: { type: number }
+        costPerUnit: { type: number }
+        reorderLevel: { type: number }
+        vendor: { type: ["string", "null"] }
+        projectId: { type: ["integer", "null"] }
 
     Expense:
       type: object
@@ -814,6 +1213,16 @@ components:
         totalBudget:
           type: number
         totalSpent:
+          type: number
+        totalRevenue:
+          type: number
+        totalProfit:
+          type: number
+        profitMargin:
+          type: number
+        laborSpent:
+          type: number
+        materialSpent:
           type: number
         remainingBudget:
           type: number

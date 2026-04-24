@@ -5,19 +5,15 @@
  * BuildTrack Construction Expense Manager API
  * OpenAPI spec version: 0.1.0
  */
-import type { ProjectStatus } from "./projectStatus";
 
-export interface Project {
+export interface Phase {
   id: number;
+  projectId: number;
   name: string;
   /** @nullable */
   description?: string | null;
-  /** @nullable */
-  location?: string | null;
-  budget: number;
-  startDate: string;
-  status: ProjectStatus;
-  totalExpenses: number;
-  remainingBudget: number;
+  status: string;
   createdAt: string;
+  totalExpenses: number;
+  expenseCount: number;
 }

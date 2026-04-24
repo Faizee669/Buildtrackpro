@@ -9,6 +9,11 @@
 export interface DashboardStats {
   totalBudget: number;
   totalSpent: number;
+  totalRevenue?: number;
+  totalProfit?: number;
+  profitMargin?: number;
+  laborSpent?: number;
+  materialSpent?: number;
   remainingBudget: number;
   spentThisMonth: number;
   activeProjects: number;

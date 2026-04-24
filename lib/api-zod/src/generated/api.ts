@@ -91,6 +91,7 @@ export const ListProjectsResponseItem = zod.object({
   id: zod.number(),
   name: zod.string(),
   description: zod.string().nullish(),
+  location: zod.string().nullish(),
   budget: zod.number(),
   startDate: zod.string(),
   status: zod.enum(["active", "completed", "on_hold"]),
@@ -106,10 +107,8 @@ export const ListProjectsResponse = zod.array(ListProjectsResponseItem);
 export const CreateProjectBody = zod.object({
   name: zod.string(),
   description: zod.string().nullish(),
+  location: zod.string().nullish(),
   budget: zod.number(),
-  laborBudget: zod.number().optional(),
-  materialBudget: zod.number().optional(),
-  estimatedRevenue: zod.number().optional(),
   startDate: zod.string(),
   status: zod.enum(["active", "completed", "on_hold"]),
 });
@@ -125,6 +124,7 @@ export const GetProjectResponse = zod.object({
   id: zod.number(),
   name: zod.string(),
   description: zod.string().nullish(),
+  location: zod.string().nullish(),
   budget: zod.number(),
   startDate: zod.string(),
   status: zod.enum(["active", "completed", "on_hold"]),
@@ -143,10 +143,8 @@ export const UpdateProjectParams = zod.object({
 export const UpdateProjectBody = zod.object({
   name: zod.string().optional(),
   description: zod.string().nullish(),
+  location: zod.string().nullish(),
   budget: zod.number().optional(),
-  laborBudget: zod.number().optional(),
-  materialBudget: zod.number().optional(),
-  estimatedRevenue: zod.number().optional(),
   startDate: zod.string().optional(),
   status: zod.enum(["active", "completed", "on_hold"]).optional(),
 });
@@ -155,6 +153,7 @@ export const UpdateProjectResponse = zod.object({
   id: zod.number(),
   name: zod.string(),
   description: zod.string().nullish(),
+  location: zod.string().nullish(),
   budget: zod.number(),
   startDate: zod.string(),
   status: zod.enum(["active", "completed", "on_hold"]),
@@ -175,7 +174,6 @@ export const DeleteProjectParams = zod.object({
  */
 export const ListExpensesQueryParams = zod.object({
   projectId: zod.coerce.number().nullish(),
-  phaseId: zod.coerce.number().nullish(),
   category: zod.coerce.string().nullish(),
   startDate: zod.coerce.string().nullish(),
   endDate: zod.coerce.string().nullish(),
@@ -186,19 +184,13 @@ export const ListExpensesResponseItem = zod.object({
   projectId: zod.number(),
   projectName: zod.string().nullish(),
   category: zod.enum([
-    "Possession",
-    "Foundation",
-    "Cement",
-    "Aggregates",
-    "Bricks",
-    "Steel",
-    "Labour",
-    "Paint",
-    "Electric",
-    "Wood",
-    "Door Frame",
-    "Plumbing",
-    "Watchman Salary",
+    "Materials",
+    "Labor",
+    "Fuel",
+    "Equipment Rental",
+    "Tools",
+    "Permits",
+    "Misc",
   ]),
   amount: zod.number(),
   vendor: zod.string().nullish(),
@@ -214,26 +206,17 @@ export const ListExpensesResponse = zod.array(ListExpensesResponseItem);
  */
 export const CreateExpenseBody = zod.object({
   projectId: zod.number(),
-  phaseId: zod.number().nullish(),
   category: zod.enum([
-    "Possession",
-    "Foundation",
-    "Cement",
-    "Aggregates",
-    "Bricks",
-    "Steel",
-    "Labour",
-    "Paint",
-    "Electric",
-    "Wood",
-    "Door Frame",
-    "Plumbing",
-    "Watchman Salary",
+    "Materials",
+    "Labor",
+    "Fuel",
+    "Equipment Rental",
+    "Tools",
+    "Permits",
+    "Misc",
   ]),
   amount: zod.number(),
   vendor: zod.string().nullish(),
-  crew: zod.string().nullish(),
-  equipment: zod.string().nullish(),
   date: zod.string(),
   notes: zod.string().nullish(),
   receiptUrl: zod.string().nullish(),
@@ -251,19 +234,13 @@ export const GetExpenseResponse = zod.object({
   projectId: zod.number(),
   projectName: zod.string().nullish(),
   category: zod.enum([
-    "Possession",
-    "Foundation",
-    "Cement",
-    "Aggregates",
-    "Bricks",
-    "Steel",
-    "Labour",
-    "Paint",
-    "Electric",
-    "Wood",
-    "Door Frame",
-    "Plumbing",
-    "Watchman Salary",
+    "Materials",
+    "Labor",
+    "Fuel",
+    "Equipment Rental",
+    "Tools",
+    "Permits",
+    "Misc",
   ]),
   amount: zod.number(),
   vendor: zod.string().nullish(),
@@ -282,28 +259,19 @@ export const UpdateExpenseParams = zod.object({
 
 export const UpdateExpenseBody = zod.object({
   projectId: zod.number().optional(),
-  phaseId: zod.number().nullish(),
   category: zod
     .enum([
-      "Possession",
-      "Foundation",
-      "Cement",
-      "Aggregates",
-      "Bricks",
-      "Steel",
-      "Labour",
-      "Paint",
-      "Electric",
-      "Wood",
-      "Door Frame",
-      "Plumbing",
-      "Watchman Salary",
+      "Materials",
+      "Labor",
+      "Fuel",
+      "Equipment Rental",
+      "Tools",
+      "Permits",
+      "Misc",
     ])
     .optional(),
   amount: zod.number().optional(),
   vendor: zod.string().nullish(),
-  crew: zod.string().nullish(),
-  equipment: zod.string().nullish(),
   date: zod.string().optional(),
   notes: zod.string().nullish(),
   receiptUrl: zod.string().nullish(),
@@ -314,19 +282,13 @@ export const UpdateExpenseResponse = zod.object({
   projectId: zod.number(),
   projectName: zod.string().nullish(),
   category: zod.enum([
-    "Possession",
-    "Foundation",
-    "Cement",
-    "Aggregates",
-    "Bricks",
-    "Steel",
-    "Labour",
-    "Paint",
-    "Electric",
-    "Wood",
-    "Door Frame",
-    "Plumbing",
-    "Watchman Salary",
+    "Materials",
+    "Labor",
+    "Fuel",
+    "Equipment Rental",
+    "Tools",
+    "Permits",
+    "Misc",
   ]),
   amount: zod.number(),
   vendor: zod.string().nullish(),
@@ -370,6 +332,11 @@ export const ExportExpensesQueryParams = zod.object({
 export const GetDashboardStatsResponse = zod.object({
   totalBudget: zod.number(),
   totalSpent: zod.number(),
+  totalRevenue: zod.number().optional(),
+  totalProfit: zod.number().optional(),
+  profitMargin: zod.number().optional(),
+  laborSpent: zod.number().optional(),
+  materialSpent: zod.number().optional(),
   remainingBudget: zod.number(),
   spentThisMonth: zod.number(),
   activeProjects: zod.number(),
@@ -417,19 +384,13 @@ export const GetRecentExpensesResponseItem = zod.object({
   projectId: zod.number(),
   projectName: zod.string().nullish(),
   category: zod.enum([
-    "Possession",
-    "Foundation",
-    "Cement",
-    "Aggregates",
-    "Bricks",
-    "Steel",
-    "Labour",
-    "Paint",
-    "Electric",
-    "Wood",
-    "Door Frame",
-    "Plumbing",
-    "Watchman Salary",
+    "Materials",
+    "Labor",
+    "Fuel",
+    "Equipment Rental",
+    "Tools",
+    "Permits",
+    "Misc",
   ]),
   amount: zod.number(),
   vendor: zod.string().nullish(),
@@ -443,6 +404,31 @@ export const GetRecentExpensesResponse = zod.array(
 );
 
 /**
+ * @summary Get rich per-project dashboard cards (active projects, with this-week spend, margin, category breakdown)
+ */
+export const GetProjectCardsResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  location: zod.string().nullish(),
+  status: zod.string(),
+  budget: zod.number(),
+  totalSpent: zod.number(),
+  laborSpent: zod.number(),
+  laborBudget: zod.number().optional(),
+  thisWeekSpent: zod.number(),
+  profitMargin: zod.number(),
+  daysActive: zod.number(),
+  categories: zod.array(
+    zod.object({
+      category: zod.string(),
+      amount: zod.number(),
+      percent: zod.number(),
+    }),
+  ),
+});
+export const GetProjectCardsResponse = zod.array(GetProjectCardsResponseItem);
+
+/**
  * @summary Get top vendors by spending
  */
 export const GetTopVendorsResponseItem = zod.object({
@@ -452,62 +438,207 @@ export const GetTopVendorsResponseItem = zod.object({
 });
 export const GetTopVendorsResponse = zod.array(GetTopVendorsResponseItem);
 
-// ─── Phases ─────────────────────────────────────────────────────────────────
+/**
+ * @summary List phases for a project
+ */
+export const ListPhasesParams = zod.object({
+  projectId: zod.coerce.number(),
+});
+
+export const ListPhasesResponseItem = zod.object({
+  id: zod.number(),
+  projectId: zod.number(),
+  name: zod.string(),
+  description: zod.string().nullish(),
+  status: zod.string(),
+  createdAt: zod.string(),
+  totalExpenses: zod.number(),
+  expenseCount: zod.number(),
+});
+export const ListPhasesResponse = zod.array(ListPhasesResponseItem);
+
+/**
+ * @summary Create a phase for a project
+ */
+export const CreatePhaseParams = zod.object({
+  projectId: zod.coerce.number(),
+});
 
 export const CreatePhaseBody = zod.object({
-  name: zod.string().min(1, "Name is required"),
+  name: zod.string(),
   description: zod.string().nullish(),
-  status: zod.enum(["active", "completed", "on_hold"]).default("active"),
+  status: zod.string().optional(),
+});
+
+/**
+ * @summary Update a phase
+ */
+export const UpdatePhaseParams = zod.object({
+  id: zod.coerce.number(),
 });
 
 export const UpdatePhaseBody = zod.object({
-  name: zod.string().min(1).optional(),
+  name: zod.string().optional(),
   description: zod.string().nullish(),
-  status: zod.enum(["active", "completed", "on_hold"]).optional(),
+  status: zod.string().optional(),
 });
 
-// ─── Crew ───────────────────────────────────────────────────────────────────
+export const UpdatePhaseResponse = zod.object({
+  id: zod.number(),
+  projectId: zod.number(),
+  name: zod.string(),
+  description: zod.string().nullish(),
+  status: zod.string(),
+  createdAt: zod.string(),
+  totalExpenses: zod.number(),
+  expenseCount: zod.number(),
+});
 
-export const CrewRoleEnum = zod.enum(["laborer", "driver", "supervisor", "mason", "electrician", "plumber", "carpenter", "operator"]);
+/**
+ * @summary Delete a phase
+ */
+export const DeletePhaseParams = zod.object({
+  id: zod.coerce.number(),
+});
 
-export const CreateCrewBody = zod.object({
-  name: zod.string().min(1, "Name is required"),
-  role: CrewRoleEnum.default("laborer"),
-  dailyRate: zod.number().min(0).default(0),
+/**
+ * @summary List crew members (optionally filter by project)
+ */
+export const ListCrewQueryParams = zod.object({
+  projectId: zod.coerce.number().optional(),
+});
+
+export const ListCrewResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  role: zod.string(),
+  dailyRate: zod.number(),
   phone: zod.string().nullish(),
   projectId: zod.number().nullish(),
-  status: zod.enum(["active", "inactive"]).default("active"),
+  status: zod.string(),
+  createdAt: zod.string(),
+  laborCost: zod.number(),
+});
+export const ListCrewResponse = zod.array(ListCrewResponseItem);
+
+/**
+ * @summary Create a crew member
+ */
+export const CreateCrewBody = zod.object({
+  name: zod.string(),
+  role: zod.string().optional(),
+  dailyRate: zod.number().optional(),
+  phone: zod.string().nullish(),
+  projectId: zod.number().nullish(),
+  status: zod.string().optional(),
+});
+
+/**
+ * @summary Update a crew member
+ */
+export const UpdateCrewParams = zod.object({
+  id: zod.coerce.number(),
 });
 
 export const UpdateCrewBody = zod.object({
-  name: zod.string().min(1).optional(),
-  role: CrewRoleEnum.optional(),
-  dailyRate: zod.number().min(0).optional(),
+  name: zod.string().optional(),
+  role: zod.string().optional(),
+  dailyRate: zod.number().optional(),
   phone: zod.string().nullish(),
   projectId: zod.number().nullish(),
-  status: zod.enum(["active", "inactive"]).optional(),
+  status: zod.string().optional(),
 });
 
-// ─── Inventory ──────────────────────────────────────────────────────────────
+export const UpdateCrewResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  role: zod.string(),
+  dailyRate: zod.number(),
+  phone: zod.string().nullish(),
+  projectId: zod.number().nullish(),
+  status: zod.string(),
+  createdAt: zod.string(),
+  laborCost: zod.number(),
+});
 
-export const CreateInventoryItemBody = zod.object({
-  name: zod.string().min(1, "Name is required"),
-  unit: zod.string().min(1).default("units"),
-  quantity: zod.number().min(0).default(0),
-  costPerUnit: zod.number().min(0).default(0),
-  reorderLevel: zod.number().min(0).default(0),
+/**
+ * @summary Delete a crew member
+ */
+export const DeleteCrewParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary List inventory items (optionally filter by project)
+ */
+export const ListInventoryQueryParams = zod.object({
+  projectId: zod.coerce.number().optional(),
+});
+
+export const ListInventoryResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  unit: zod.string(),
+  quantity: zod.number(),
+  costPerUnit: zod.number(),
+  reorderLevel: zod.number(),
+  vendor: zod.string().nullish(),
+  projectId: zod.number().nullish(),
+  totalValue: zod.number(),
+  isLow: zod.boolean(),
+  createdAt: zod.string(),
+});
+export const ListInventoryResponse = zod.array(ListInventoryResponseItem);
+
+/**
+ * @summary Create an inventory item
+ */
+export const CreateInventoryBody = zod.object({
+  name: zod.string(),
+  unit: zod.string().optional(),
+  quantity: zod.number().optional(),
+  costPerUnit: zod.number().optional(),
+  reorderLevel: zod.number().optional(),
   vendor: zod.string().nullish(),
   projectId: zod.number().nullish(),
 });
 
-export const UpdateInventoryItemBody = zod.object({
-  name: zod.string().min(1).optional(),
-  unit: zod.string().min(1).optional(),
-  quantity: zod.number().min(0).optional(),
-  costPerUnit: zod.number().min(0).optional(),
-  reorderLevel: zod.number().min(0).optional(),
+/**
+ * @summary Update an inventory item
+ */
+export const UpdateInventoryParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateInventoryBody = zod.object({
+  name: zod.string().optional(),
+  unit: zod.string().optional(),
+  quantity: zod.number().optional(),
+  costPerUnit: zod.number().optional(),
+  reorderLevel: zod.number().optional(),
   vendor: zod.string().nullish(),
   projectId: zod.number().nullish(),
+});
+
+export const UpdateInventoryResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  unit: zod.string(),
+  quantity: zod.number(),
+  costPerUnit: zod.number(),
+  reorderLevel: zod.number(),
+  vendor: zod.string().nullish(),
+  projectId: zod.number().nullish(),
+  totalValue: zod.number(),
+  isLow: zod.boolean(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Delete an inventory item
+ */
+export const DeleteInventoryParams = zod.object({
+  id: zod.coerce.number(),
 });
 
 /**

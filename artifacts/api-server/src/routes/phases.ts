@@ -1,7 +1,9 @@
 import { Router, type IRouter } from "express";
-import { db, phasesTable, expensesTable } from "@workspace/db";
+import { db, phasesTable, expensesTable, insertPhaseSchema } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
-import { CreatePhaseBody, UpdatePhaseBody } from "@workspace/api-zod";
+
+const CreatePhaseBody = insertPhaseSchema.omit({ projectId: true });
+const UpdatePhaseBody = insertPhaseSchema.partial();
 
 const router: IRouter = Router();
 
@@ -57,7 +59,19 @@ router.patch("/phases/:id", async (req, res): Promise<void> => {
   const [updated] = await db.update(phasesTable).set(parsed.data).where(eq(phasesTable.id, id)).returning();
   if (!updated) { res.status(404).json({ error: "Phase not found" }); return; }
 
-  res.json(updated);
+  const [agg] = await db
+    .select({
+      totalExpenses: sql<string>`COALESCE(SUM(${expensesTable.amount}), 0)`,
+      expenseCount: sql<string>`COUNT(${expensesTable.id})`,
+    })
+    .from(expensesTable)
+    .where(eq(expensesTable.phaseId, id));
+
+  res.json({
+    ...updated,
+    totalExpenses: parseFloat(agg?.totalExpenses ?? "0"),
+    expenseCount: parseInt(agg?.expenseCount ?? "0"),
+  });
 });
 
 // DELETE /phases/:id

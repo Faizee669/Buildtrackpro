@@ -2,7 +2,13 @@
 
 ## Overview
 
-BuildTrack – Construction Expense Manager. A full-stack web app for tracking construction project expenses, budgets, receipts, and analytics.
+BuildTrack Pro+ – Construction Expense Manager. A full-stack web app for tracking construction project expenses, budgets, receipts, and analytics.
+
+## Recent Changes
+
+- **Apr 2026 — Per-Project Stack dashboard**: Replaced the dashboard with a per-project card layout (variant B graduation): each card shows budget bar with this-week overlay, three metric chips (this-week/labor/profit margin), category strip, and right-rail AI Advisor + Top Vendors panels. Backed by new endpoint `GET /api/dashboard/project-cards` returning totalSpent, laborSpent, thisWeekSpent (last 7 days), profitMargin, daysActive, and top categories with %.
+- **Project location field**: Added `location` text column to `projectsTable` (raw SQL since drizzle-kit push was blocked); surfaced in OpenAPI Project/CreateProjectBody/UpdateProjectBody and in the Quick Add project form.
+- **OpenAPI alignment**: Added phases/crew/inventory endpoints + schemas to `openapi.yaml` so orval regenerates the hooks the frontend uses (`useListPhases`, `useCreatePhase`, etc.). PATCH `/phases/:id` and `/crew/:id` now return computed fields (`totalExpenses`/`expenseCount`, `laborCost`) to match the schemas. `useCreatePhase` mutate now takes `{ projectId, data }`.
 
 ## Stack
 

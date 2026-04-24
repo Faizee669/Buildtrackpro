@@ -6,6 +6,7 @@ export const projectsTable = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
+  location: text("location"),
   budget: numeric("budget", { precision: 12, scale: 2 }).notNull(),
   laborBudget: numeric("labor_budget", { precision: 12, scale: 2 }).notNull().default("0"),
   materialBudget: numeric("material_budget", { precision: 12, scale: 2 }).notNull().default("0"),

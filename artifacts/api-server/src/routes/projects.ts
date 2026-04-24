@@ -81,6 +81,7 @@ router.post("/projects", async (req, res): Promise<void> => {
   if (parsed.data.laborBudget !== undefined) values.laborBudget = String(parsed.data.laborBudget);
   if (parsed.data.materialBudget !== undefined) values.materialBudget = String(parsed.data.materialBudget);
   if (parsed.data.estimatedRevenue !== undefined) values.estimatedRevenue = String(parsed.data.estimatedRevenue);
+  if (parsed.data.location !== undefined) values.location = parsed.data.location;
 
   const [project] = await db.insert(projectsTable).values(values as any).returning();
   const result = await getProjectWithStats(project.id);
@@ -112,6 +113,7 @@ router.patch("/projects/:id", async (req, res): Promise<void> => {
   if (parsed.data.laborBudget !== undefined) updates.laborBudget = String(parsed.data.laborBudget);
   if (parsed.data.materialBudget !== undefined) updates.materialBudget = String(parsed.data.materialBudget);
   if (parsed.data.estimatedRevenue !== undefined) updates.estimatedRevenue = String(parsed.data.estimatedRevenue);
+  if (parsed.data.location !== undefined) updates.location = parsed.data.location;
 
   const [updated] = await db.update(projectsTable).set(updates).where(eq(projectsTable.id, params.data.id)).returning();
   if (!updated) { res.status(404).json({ error: "Project not found" }); return; }

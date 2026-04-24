@@ -1,7 +1,9 @@
 import { Router, type IRouter } from "express";
-import { db, inventoryTable } from "@workspace/db";
+import { db, inventoryTable, insertInventorySchema } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { CreateInventoryItemBody, UpdateInventoryItemBody } from "@workspace/api-zod";
+
+const CreateInventoryItemBody = insertInventorySchema;
+const UpdateInventoryItemBody = insertInventorySchema.partial();
 
 const router: IRouter = Router();
 

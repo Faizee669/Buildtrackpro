@@ -193,6 +193,70 @@ router.get("/dashboard/top-vendors", async (_req, res): Promise<void> => {
   })));
 });
 
+// GET /dashboard/project-cards
+router.get("/dashboard/project-cards", async (_req, res): Promise<void> => {
+  const projects = await db.select().from(projectsTable).orderBy(projectsTable.createdAt);
+
+  const cards = await Promise.all(projects.map(async (p) => {
+    const [agg] = await db
+      .select({
+        total: sql<string>`COALESCE(SUM(amount), 0)`,
+        labor: sql<string>`COALESCE(SUM(CASE WHEN category IN ('Labour','Watchman Salary') THEN amount ELSE 0 END), 0)`,
+        thisWeek: sql<string>`COALESCE(SUM(CASE WHEN date::timestamp >= NOW() - INTERVAL '7 days' THEN amount ELSE 0 END), 0)`,
+      })
+      .from(expensesTable)
+      .where(eq(expensesTable.projectId, p.id));
+
+    const cats = await db
+      .select({
+        category: expensesTable.category,
+        amount: sql<string>`COALESCE(SUM(amount), 0)`,
+      })
+      .from(expensesTable)
+      .where(eq(expensesTable.projectId, p.id))
+      .groupBy(expensesTable.category)
+      .orderBy(sql`SUM(amount) DESC`);
+
+    const totalSpent = parseFloat(agg?.total ?? "0");
+    const laborSpent = parseFloat(agg?.labor ?? "0");
+    const thisWeekSpent = parseFloat(agg?.thisWeek ?? "0");
+    const budget = parseFloat(p.budget);
+    const laborBudget = parseFloat(p.laborBudget);
+    const revenue = parseFloat(p.estimatedRevenue);
+    const profitMargin = revenue > 0 ? ((revenue - totalSpent) / revenue) * 100 : 0;
+
+    const startDateMs = new Date(p.startDate).getTime();
+    const daysActive = Math.max(
+      0,
+      Math.floor((Date.now() - startDateMs) / (1000 * 60 * 60 * 24)),
+    );
+
+    const totalAll = cats.reduce((s, c) => s + parseFloat(c.amount), 0);
+    const categories = cats.map((c) => ({
+      category: c.category,
+      amount: parseFloat(c.amount),
+      percent: totalAll > 0 ? (parseFloat(c.amount) / totalAll) * 100 : 0,
+    }));
+
+    return {
+      id: p.id,
+      name: p.name,
+      location: p.location ?? null,
+      status: p.status,
+      budget,
+      totalSpent,
+      laborSpent,
+      laborBudget,
+      thisWeekSpent,
+      profitMargin,
+      daysActive,
+      categories,
+    };
+  }));
+
+  res.json(cards);
+});
+
 // GET /dashboard/recent-expenses
 router.get("/dashboard/recent-expenses", async (_req, res): Promise<void> => {
   const results = await db

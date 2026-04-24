@@ -11,6 +11,8 @@ export interface UpdateProjectBody {
   name?: string;
   /** @nullable */
   description?: string | null;
+  /** @nullable */
+  location?: string | null;
   budget?: number;
   startDate?: string;
   status?: UpdateProjectBodyStatus;

@@ -1,7 +1,9 @@
 import { Router, type IRouter } from "express";
-import { db, crewTable, expensesTable } from "@workspace/db";
+import { db, crewTable, expensesTable, insertCrewSchema } from "@workspace/db";
 import { eq, sql, ilike, and } from "drizzle-orm";
-import { CreateCrewBody, UpdateCrewBody } from "@workspace/api-zod";
+
+const CreateCrewBody = insertCrewSchema;
+const UpdateCrewBody = insertCrewSchema.partial();
 
 const router: IRouter = Router();
 
@@ -66,7 +68,18 @@ router.patch("/crew/:id", async (req, res): Promise<void> => {
   const [updated] = await db.update(crewTable).set(updates).where(eq(crewTable.id, id)).returning();
   if (!updated) { res.status(404).json({ error: "Crew member not found" }); return; }
 
-  res.json({ ...updated, dailyRate: parseFloat(updated.dailyRate) });
+  const [labor] = await db
+    .select({
+      laborCost: sql<string>`COALESCE(SUM(${expensesTable.amount}), 0)`,
+    })
+    .from(expensesTable)
+    .where(sql`LOWER(${expensesTable.crew}) = LOWER(${updated.name})`);
+
+  res.json({
+    ...updated,
+    dailyRate: parseFloat(updated.dailyRate),
+    laborCost: parseFloat(labor?.laborCost ?? "0"),
+  });
 });
 
 // DELETE /crew/:id

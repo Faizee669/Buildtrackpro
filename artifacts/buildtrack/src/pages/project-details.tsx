@@ -83,7 +83,7 @@ export default function ProjectDetails() {
     }
   })
 
-  const createPhase = useCreatePhase(projectId, {
+  const createPhase = useCreatePhase({
     mutation: {
       onSuccess: () => { invalidate(); setAddPhaseOpen(false); phaseForm.reset({ name: "", description: "", status: "active" }); toast({ title: "Phase added" }) },
       onError: (e: any) => toast({ title: "Failed to add phase", description: e?.error, variant: "destructive" })
@@ -320,7 +320,7 @@ export default function ProjectDetails() {
               <DialogContent className="sm:max-w-sm">
                 <DialogHeader><DialogTitle>Add Phase / Sub-Site</DialogTitle></DialogHeader>
                 <Form {...phaseForm}>
-                  <form onSubmit={phaseForm.handleSubmit(d => createPhase.mutate({ data: d }))} className="space-y-4 pt-1">
+                  <form onSubmit={phaseForm.handleSubmit(d => createPhase.mutate({ projectId, data: d }))} className="space-y-4 pt-1">
                     <FormField control={phaseForm.control} name="name" render={({ field }) => (
                       <FormItem><FormLabel>Phase Name</FormLabel><FormControl><Input placeholder="e.g. Foundation, Framing, Electrical…" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />

@@ -33,6 +33,7 @@ const expenseSchema = z.object({
 const projectSchema = z.object({
   name: z.string().min(2, "Name is required"),
   description: z.string().optional(),
+  location: z.string().optional(),
   budget: z.coerce.number().min(1, "Budget must be greater than 0"),
   startDate: z.string().min(1, "Start date is required"),
   status: z.enum(["active", "completed", "on_hold"]),
@@ -197,6 +198,7 @@ function ProjectForm({ onSuccess }: { onSuccess: () => void }) {
     defaultValues: {
       name: "",
       description: "",
+      location: "",
       budget: 0,
       startDate: new Date().toISOString().split("T")[0],
       status: "active",
@@ -208,7 +210,7 @@ function ProjectForm({ onSuccess }: { onSuccess: () => void }) {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListProjectsQueryKey() })
         toast({ title: "Project created!", description: "Your new project is ready." })
-        form.reset({ name: "", description: "", budget: 0, startDate: new Date().toISOString().split("T")[0], status: "active" })
+        form.reset({ name: "", description: "", location: "", budget: 0, startDate: new Date().toISOString().split("T")[0], status: "active" })
         onSuccess()
       },
       onError: (err: any) => {
@@ -224,6 +226,14 @@ function ProjectForm({ onSuccess }: { onSuccess: () => void }) {
           <FormItem>
             <FormLabel>Project Name</FormLabel>
             <FormControl><Input placeholder="e.g. Office Block A" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+
+        <FormField control={form.control} name="location" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Location <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+            <FormControl><Input placeholder="e.g. Gulberg, Lahore" {...field} /></FormControl>
             <FormMessage />
           </FormItem>
         )} />
