@@ -307,6 +307,13 @@ export default function Dashboard() {
     return arr
   }, [cards, sortKey])
 
+  useEffect(() => {
+    const dismissed = localStorage.getItem("buildtrack-onboarding-dismissed")
+    if (!dismissed && !cardsLoading && cards && cards.length === 0) {
+      setShowOnboarding(true)
+    }
+  }, [cards, cardsLoading])
+
   if (isLoading) {
     return (
       <div className="w-full h-[60vh] flex items-center justify-center">
@@ -314,13 +321,6 @@ export default function Dashboard() {
       </div>
     )
   }
-
-  useEffect(() => {
-    const dismissed = localStorage.getItem("buildtrack-onboarding-dismissed")
-    if (!dismissed && !cardsLoading && cards && cards.length === 0) {
-      setShowOnboarding(true)
-    }
-  }, [cards, cardsLoading])
 
   const handleDismissOnboarding = () => {
     localStorage.setItem("buildtrack-onboarding-dismissed", "1")
