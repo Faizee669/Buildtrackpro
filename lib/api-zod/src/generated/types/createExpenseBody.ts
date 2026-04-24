@@ -5,11 +5,10 @@
  * BuildTrack Construction Expense Manager API
  * OpenAPI spec version: 0.1.0
  */
-import type { CreateExpenseBodyCategory } from "./createExpenseBodyCategory";
 
 export interface CreateExpenseBody {
   projectId: number;
-  category: CreateExpenseBodyCategory;
+  category: string;
   amount: number;
   /** @nullable */
   vendor?: string | null;

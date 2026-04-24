@@ -910,6 +910,12 @@ components:
           type: ["string", "null"]
         budget:
           type: number
+        laborBudget:
+          type: number
+        materialBudget:
+          type: number
+        estimatedRevenue:
+          type: number
         startDate:
           type: string
         status:
@@ -917,7 +923,15 @@ components:
           enum: [active, completed, on_hold]
         totalExpenses:
           type: number
+        laborSpent:
+          type: number
+        materialSpent:
+          type: number
         remainingBudget:
+          type: number
+        profit:
+          type: number
+        profitMargin:
           type: number
         createdAt:
           type: string
@@ -925,10 +939,17 @@ components:
         - id
         - name
         - budget
+        - laborBudget
+        - materialBudget
+        - estimatedRevenue
         - startDate
         - status
         - totalExpenses
+        - laborSpent
+        - materialSpent
         - remainingBudget
+        - profit
+        - profitMargin
         - createdAt
 
     CreateProjectBody:
@@ -1135,7 +1156,6 @@ components:
           type: ["string", "null"]
         category:
           type: string
-          enum: [Materials, Labor, Fuel, Equipment Rental, Tools, Permits, Misc]
         amount:
           type: number
         vendor:
@@ -1163,7 +1183,6 @@ components:
           type: integer
         category:
           type: string
-          enum: [Materials, Labor, Fuel, Equipment Rental, Tools, Permits, Misc]
         amount:
           type: number
         vendor:
@@ -1187,7 +1206,6 @@ components:
           type: integer
         category:
           type: string
-          enum: [Materials, Labor, Fuel, Equipment Rental, Tools, Permits, Misc]
         amount:
           type: number
         vendor:

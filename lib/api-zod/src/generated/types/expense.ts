@@ -5,14 +5,13 @@
  * BuildTrack Construction Expense Manager API
  * OpenAPI spec version: 0.1.0
  */
-import type { ExpenseCategory } from "./expenseCategory";
 
 export interface Expense {
   id: number;
   projectId: number;
   /** @nullable */
   projectName?: string | null;
-  category: ExpenseCategory;
+  category: string;
   amount: number;
   /** @nullable */
   vendor?: string | null;

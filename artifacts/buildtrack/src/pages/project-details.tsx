@@ -8,12 +8,15 @@ import { CATEGORY_COLORS } from "@/lib/utils"
 import { useCurrency } from "@/lib/currency-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { format, parseISO } from "date-fns"
-import { ArrowLeft, Edit, Trash2, Calendar, Receipt, AlertTriangle, Loader2, Plus, Layers, ChevronDown } from "lucide-react"
+import { format, parseISO, startOfWeek, differenceInDays } from "date-fns"
+import {
+  ArrowLeft, Edit, Trash2, Receipt, AlertTriangle, Loader2, Plus, Layers,
+  TrendingUp, TrendingDown, DollarSign, Hammer, Calendar, MapPin, BarChart2,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -22,14 +25,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts"
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip,
+  ResponsiveContainer, PieChart, Pie, Cell,
+} from "recharts"
 
 const STATUS_COLORS = {
   active: "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800",
   completed: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800",
-  on_hold: "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800"
+  on_hold: "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800",
 }
-
 const STATUS_LABEL = { active: "Active", completed: "Completed", on_hold: "On Hold" }
 
 const projectSchema = z.object({
@@ -37,7 +42,7 @@ const projectSchema = z.object({
   description: z.string().optional().nullable(),
   budget: z.coerce.number().min(1, "Budget must be greater than 0"),
   startDate: z.string().min(1, "Start date is required"),
-  status: z.enum(["active", "completed", "on_hold"])
+  status: z.enum(["active", "completed", "on_hold"]),
 })
 
 const phaseSchema = z.object({
@@ -45,6 +50,41 @@ const phaseSchema = z.object({
   description: z.string().optional(),
   status: z.enum(["active", "completed", "on_hold"]),
 })
+
+function KpiChip({ label, value, sub, highlight, icon: Icon }: {
+  label: string
+  value: string
+  sub?: string
+  highlight?: "danger" | "success" | "warn"
+  icon?: React.ElementType
+}) {
+  const colors = {
+    danger: "text-destructive",
+    success: "text-emerald-600 dark:text-emerald-400",
+    warn: "text-amber-500",
+  }
+  return (
+    <Card className="shadow-sm border border-border">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wide truncate">{label}</p>
+            <p className={`text-2xl font-display font-bold mt-1 truncate ${highlight ? colors[highlight] : ""}`}>{value}</p>
+            {sub && <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}
+          </div>
+          {Icon && <Icon className="w-5 h-5 text-muted-foreground/50 flex-shrink-0 mt-1" />}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+const CHART_TOOLTIP_STYLE = {
+  backgroundColor: "hsl(var(--card))",
+  borderColor: "hsl(var(--border))",
+  borderRadius: "0.35rem",
+  fontSize: "0.8rem",
+}
 
 export default function ProjectDetails() {
   const { fmt } = useCurrency()
@@ -58,6 +98,8 @@ export default function ProjectDetails() {
   const [editOpen, setEditOpen] = useState(false)
   const [addPhaseOpen, setAddPhaseOpen] = useState(false)
   const [editPhaseId, setEditPhaseId] = useState<number | null>(null)
+  const [expenseSearch, setExpenseSearch] = useState("")
+  const [expenseCatFilter, setExpenseCatFilter] = useState("all")
   const queryClient = useQueryClient()
   const { toast } = useToast()
 
@@ -111,19 +153,85 @@ export default function ProjectDetails() {
       description: project.description || "",
       budget: project.budget,
       startDate: project.startDate,
-      status: project.status as any
-    } : undefined
+      status: project.status as any,
+    } : undefined,
   })
 
   const phaseForm = useForm<z.infer<typeof phaseSchema>>({
     resolver: zodResolver(phaseSchema),
-    defaultValues: { name: "", description: "", status: "active" }
+    defaultValues: { name: "", description: "", status: "active" },
   })
 
   const editPhaseForm = useForm<z.infer<typeof phaseSchema>>({
     resolver: zodResolver(phaseSchema),
-    defaultValues: { name: "", description: "", status: "active" }
+    defaultValues: { name: "", description: "", status: "active" },
   })
+
+  /* ── Derived chart data ── */
+  const { trendData, catData, allCategories } = useMemo(() => {
+    if (!expenses) return { trendData: [], catData: [], allCategories: [] }
+
+    /* Weekly spending trend */
+    const weekMap: Record<string, number> = {}
+    for (const e of expenses) {
+      const key = format(startOfWeek(parseISO(e.date), { weekStartsOn: 1 }), "MMM d")
+      weekMap[key] = (weekMap[key] || 0) + e.amount
+    }
+    const trendData = Object.entries(weekMap)
+      .sort((a, b) => new Date("2024 " + a[0]).getTime() - new Date("2024 " + b[0]).getTime())
+      .map(([week, amount]) => ({ week, amount }))
+
+    /* Category totals */
+    const catMap: Record<string, number> = {}
+    for (const e of expenses) catMap[e.category] = (catMap[e.category] || 0) + e.amount
+    const total = Object.values(catMap).reduce((s, v) => s + v, 0)
+    const catData = Object.entries(catMap)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, value]) => ({
+        name,
+        value,
+        pct: total > 0 ? ((value / total) * 100).toFixed(1) : "0",
+        fill: CATEGORY_COLORS[name] || "hsl(var(--primary))",
+      }))
+
+    const allCategories = Object.keys(catMap)
+
+    return { trendData, catData, allCategories }
+  }, [expenses])
+
+  /* Budget allocation donut */
+  const budgetDonutData = useMemo(() => {
+    if (!project) return []
+    const items = [
+      { name: "Labor Spent", value: project.laborSpent, fill: "#f97316" },
+      { name: "Material Spent", value: project.materialSpent, fill: "#3b82f6" },
+      { name: "Remaining", value: Math.max(0, project.remainingBudget), fill: "hsl(var(--secondary))" },
+    ].filter(d => d.value > 0)
+    return items
+  }, [project])
+
+  /* Phase spend donut */
+  const phaseDonutData = useMemo(() => {
+    if (!phases) return []
+    return phases
+      .filter(p => p.totalExpenses > 0)
+      .map((p, i) => ({
+        name: p.name,
+        value: p.totalExpenses,
+        fill: ["#f97316", "#3b82f6", "#10b981", "#8b5cf6", "#f43f5e", "#facc15"][i % 6],
+      }))
+  }, [phases])
+
+  /* Filtered expenses */
+  const filteredExpenses = useMemo(() => {
+    if (!expenses) return []
+    return expenses.filter(e => {
+      const matchesCat = expenseCatFilter === "all" || e.category === expenseCatFilter
+      const q = expenseSearch.toLowerCase()
+      const matchesSearch = !q || e.vendor?.toLowerCase().includes(q) || e.category.toLowerCase().includes(q) || e.description?.toLowerCase().includes(q)
+      return matchesCat && matchesSearch
+    })
+  }, [expenses, expenseCatFilter, expenseSearch])
 
   if (projLoading || expLoading || phasesLoading) return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -147,31 +255,35 @@ export default function ProjectDetails() {
 
   const pct = project.budget > 0 ? (project.totalExpenses / project.budget) * 100 : 0
   const isOverBudget = project.totalExpenses > project.budget
-
-  const catBreakdown = expenses?.reduce((acc, exp) => {
-    acc[exp.category] = (acc[exp.category] || 0) + exp.amount
-    return acc
-  }, {} as Record<string, number>)
-
-  const pieData = Object.entries(catBreakdown || {}).map(([name, value]) => ({ name, value }))
+  const daysActive = differenceInDays(new Date(), parseISO(project.startDate))
+  const dailyBurn = daysActive > 0 ? project.totalExpenses / daysActive : 0
+  const hasRevenue = project.estimatedRevenue > 0
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link href="/projects" className="flex items-center gap-1.5 px-3 py-2 bg-secondary/50 rounded-md hover:bg-secondary text-secondary-foreground text-sm font-medium transition-colors hover-elevate">
-          <ArrowLeft className="w-4 h-4" /> All Projects
+      {/* ── Header ── */}
+      <div className="flex items-start gap-4">
+        <Link href="/projects" className="flex items-center gap-1.5 px-3 py-2 bg-secondary/50 rounded-md hover:bg-secondary text-secondary-foreground text-sm font-medium transition-colors hover-elevate mt-1">
+          <ArrowLeft className="w-4 h-4" /> Projects
         </Link>
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
-            <span className={`text-xs uppercase font-bold px-2 py-0.5 rounded-sm border ${STATUS_COLORS[project.status as keyof typeof STATUS_COLORS]}`}>
-              {project.status.replace('_', ' ')}
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-bold tracking-tight truncate">{project.name}</h1>
+            <span className={`text-xs uppercase font-bold px-2 py-0.5 rounded-sm border flex-shrink-0 ${STATUS_COLORS[project.status as keyof typeof STATUS_COLORS]}`}>
+              {project.status.replace("_", " ")}
             </span>
           </div>
-          <p className="text-muted-foreground text-sm mt-1">{project.description || "No description provided."}</p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
+            {project.description && <span className="truncate">{project.description}</span>}
+            {project.location && (
+              <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{project.location}</span>
+            )}
+            <span className="flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5" /> Started {format(parseISO(project.startDate), "MMM d, yyyy")}
+            </span>
+          </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-shrink-0">
           <Dialog open={editOpen} onOpenChange={setEditOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="hover-elevate">
@@ -186,7 +298,7 @@ export default function ProjectDetails() {
                     <FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={projectForm.control} name="description" render={({ field }) => (
-                    <FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} value={field.value || ""} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <div className="grid grid-cols-2 gap-4">
                     <FormField control={projectForm.control} name="budget" render={({ field }) => (
@@ -223,94 +335,231 @@ export default function ProjectDetails() {
         </div>
       </div>
 
-      {/* KPI row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 shadow-sm border border-border">
-          <CardHeader className="bg-secondary/10 border-b border-border pb-4">
-            <CardTitle className="text-lg flex justify-between items-center">
-              <span>Financial Overview</span>
-              <Calendar className="w-5 h-5 text-muted-foreground" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="grid grid-cols-3 gap-6 mb-8">
-              <div>
-                <p className="text-sm font-semibold text-muted-foreground uppercase mb-1">Total Budget</p>
-                <p className="text-3xl font-display font-bold">{fmt(project.budget)}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-muted-foreground uppercase mb-1">Spent</p>
-                <p className="text-3xl font-display font-bold">{fmt(project.totalExpenses)}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-muted-foreground uppercase mb-1">Remaining</p>
-                <p className={`text-3xl font-display font-bold ${isOverBudget ? 'text-destructive' : 'text-primary'}`}>{fmt(project.remainingBudget)}</p>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between font-medium">
-                <span>Budget Utilization</span>
-                <span className={isOverBudget ? 'text-destructive font-bold' : ''}>{pct.toFixed(1)}%</span>
-              </div>
-              <div className="w-full h-4 bg-secondary/20 rounded-full overflow-hidden shadow-inner">
-                <div className={`h-full transition-all duration-1000 ease-out rounded-full ${isOverBudget ? 'bg-destructive' : 'bg-primary'}`} style={{ width: `${Math.min(pct, 100)}%` }} />
-              </div>
-              {isOverBudget && (
-                <p className="text-destructive text-sm flex items-center gap-1 mt-2 font-medium">
-                  <AlertTriangle className="w-4 h-4" /> This project has exceeded its budget.
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm border border-border">
-          <CardHeader className="border-b border-border pb-4">
-            <CardTitle className="text-lg">Category Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 flex flex-col items-center justify-center min-h-[250px]">
-            {pieData.length > 0 ? (
-              <div className="w-full h-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2} dataKey="value" nameKey="name" stroke="none">
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[entry.name] || 'var(--color-chart-7)'} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '0.35rem' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            ) : <p className="text-muted-foreground text-sm">No expenses yet.</p>}
-            <div className="w-full mt-4 space-y-2">
-              {pieData.sort((a, b) => b.value - a.value).slice(0, 3).map(d => (
-                <div key={d.name} className="flex justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CATEGORY_COLORS[d.name] }} />
-                    <span>{d.name}</span>
-                  </div>
-                  <span className="font-medium">{fmt(d.value)}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      {/* ── KPI Strip ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <KpiChip
+          label="Budget Used"
+          value={`${pct.toFixed(1)}%`}
+          sub={`${fmt(project.totalExpenses)} of ${fmt(project.budget)}`}
+          highlight={isOverBudget ? "danger" : pct > 80 ? "warn" : undefined}
+          icon={DollarSign}
+        />
+        <KpiChip
+          label="Remaining"
+          value={fmt(Math.abs(project.remainingBudget))}
+          sub={isOverBudget ? "OVER BUDGET" : "left to spend"}
+          highlight={isOverBudget ? "danger" : project.remainingBudget < project.budget * 0.1 ? "warn" : "success"}
+          icon={isOverBudget ? TrendingDown : TrendingUp}
+        />
+        <KpiChip
+          label="Labor Spent"
+          value={fmt(project.laborSpent)}
+          sub={project.laborBudget > 0 ? `of ${fmt(project.laborBudget)} budget` : `${project.totalExpenses > 0 ? ((project.laborSpent / project.totalExpenses) * 100).toFixed(0) : 0}% of total`}
+          icon={Hammer}
+        />
+        <KpiChip
+          label="Material Spent"
+          value={fmt(project.materialSpent)}
+          sub={`${project.totalExpenses > 0 ? ((project.materialSpent / project.totalExpenses) * 100).toFixed(0) : 0}% of total`}
+          icon={BarChart2}
+        />
+        {hasRevenue ? (
+          <KpiChip
+            label="Profit Margin"
+            value={`${project.profitMargin.toFixed(1)}%`}
+            sub={`${fmt(project.profit)} profit`}
+            highlight={project.profitMargin < 0 ? "danger" : project.profitMargin < 10 ? "warn" : "success"}
+            icon={project.profitMargin >= 0 ? TrendingUp : TrendingDown}
+          />
+        ) : (
+          <KpiChip
+            label="Daily Burn"
+            value={fmt(dailyBurn)}
+            sub="avg per day"
+            icon={TrendingUp}
+          />
+        )}
+        <KpiChip
+          label="Days Active"
+          value={String(Math.max(0, daysActive))}
+          sub={`since ${format(parseISO(project.startDate), "MMM d, yyyy")}`}
+          icon={Calendar}
+        />
       </div>
 
-      {/* Tabs: Phases + Expenses */}
-      <Tabs defaultValue="phases">
+      {/* ── Budget progress bar ── */}
+      <div className="space-y-1.5">
+        <div className="flex justify-between text-sm font-medium">
+          <span>Budget Utilization</span>
+          <span className={isOverBudget ? "text-destructive font-bold" : ""}>{pct.toFixed(1)}%</span>
+        </div>
+        <div className="w-full h-3 bg-secondary/20 rounded-full overflow-hidden shadow-inner">
+          <div
+            className={`h-full transition-all duration-1000 ease-out rounded-full ${isOverBudget ? "bg-destructive" : "bg-primary"}`}
+            style={{ width: `${Math.min(pct, 100)}%` }}
+          />
+        </div>
+        {isOverBudget && (
+          <p className="text-destructive text-xs flex items-center gap-1 font-medium">
+            <AlertTriangle className="w-3.5 h-3.5" /> This project has exceeded its budget by {fmt(project.totalExpenses - project.budget)}.
+          </p>
+        )}
+      </div>
+
+      {/* ── Tabs ── */}
+      <Tabs defaultValue="overview">
         <TabsList className="mb-4">
-          <TabsTrigger value="phases" className="gap-2"><Layers className="w-4 h-4" /> Phases / Sub-Sites</TabsTrigger>
-          <TabsTrigger value="expenses" className="gap-2"><Receipt className="w-4 h-4" /> Expenses</TabsTrigger>
+          <TabsTrigger value="overview" className="gap-2"><BarChart2 className="w-4 h-4" /> Overview</TabsTrigger>
+          <TabsTrigger value="phases" className="gap-2"><Layers className="w-4 h-4" /> Phases <span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">{phases?.length ?? 0}</span></TabsTrigger>
+          <TabsTrigger value="expenses" className="gap-2"><Receipt className="w-4 h-4" /> Expenses <span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">{expenses?.length ?? 0}</span></TabsTrigger>
         </TabsList>
 
+        {/* ── Overview tab ── */}
+        <TabsContent value="overview" className="space-y-6 mt-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Weekly spend trend */}
+            <Card className="shadow-sm border border-border">
+              <CardHeader className="pb-3 border-b border-border">
+                <CardTitle className="text-base font-semibold">Weekly Spending Trend</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                {trendData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={trendData} margin={{ top: 4, right: 4, left: -10, bottom: 0 }} barCategoryGap="30%">
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                      <XAxis dataKey="week" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={v => `₹${v >= 100000 ? (v / 100000).toFixed(1) + "L" : v >= 1000 ? (v / 1000).toFixed(0) + "K" : v}`} />
+                      <RTooltip
+                        contentStyle={CHART_TOOLTIP_STYLE}
+                        formatter={(v: number) => [fmt(v), "Spent"]}
+                      />
+                      <Bar dataKey="amount" radius={[4, 4, 0, 0]} fill="hsl(var(--primary))" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-[220px] flex items-center justify-center text-muted-foreground text-sm">
+                    No expenses recorded yet.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Category breakdown – horizontal bars */}
+            <Card className="shadow-sm border border-border">
+              <CardHeader className="pb-3 border-b border-border">
+                <CardTitle className="text-base font-semibold">Spending by Category</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                {catData.length > 0 ? (
+                  <div className="space-y-2.5">
+                    {catData.map(d => (
+                      <div key={d.name}>
+                        <div className="flex justify-between text-xs mb-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: d.fill }} />
+                            <span className="font-medium truncate max-w-[120px]">{d.name}</span>
+                          </div>
+                          <span className="text-muted-foreground font-medium">{fmt(d.value)} <span className="opacity-60">({d.pct}%)</span></span>
+                        </div>
+                        <div className="w-full h-2 bg-secondary/20 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${d.pct}%`, backgroundColor: d.fill }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-[220px] flex items-center justify-center text-muted-foreground text-sm">No expenses recorded yet.</div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Budget allocation donut */}
+            <Card className="shadow-sm border border-border">
+              <CardHeader className="pb-3 border-b border-border">
+                <CardTitle className="text-base font-semibold">Budget Allocation</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 flex flex-col items-center">
+                {budgetDonutData.length > 0 ? (
+                  <>
+                    <ResponsiveContainer width="100%" height={180}>
+                      <PieChart>
+                        <Pie
+                          data={budgetDonutData}
+                          cx="50%" cy="50%"
+                          innerRadius={50} outerRadius={78}
+                          paddingAngle={2} dataKey="value" stroke="none"
+                        >
+                          {budgetDonutData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+                        </Pie>
+                        <RTooltip
+                          contentStyle={CHART_TOOLTIP_STYLE}
+                          formatter={(v: number) => fmt(v)}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="w-full space-y-2 mt-1">
+                      {budgetDonutData.map(d => (
+                        <div key={d.name} className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: d.fill }} />
+                            <span className="text-muted-foreground">{d.name}</span>
+                          </div>
+                          <span className="font-semibold">{fmt(d.value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="h-[180px] flex items-center justify-center text-muted-foreground text-sm">No spending data yet.</div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Phase spend breakdown */}
+            <Card className="shadow-sm border border-border">
+              <CardHeader className="pb-3 border-b border-border">
+                <CardTitle className="text-base font-semibold">Phase Spending</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                {phaseDonutData.length > 0 ? (
+                  <div className="space-y-2.5">
+                    {phaseDonutData.map(d => {
+                      const phasePct = project.totalExpenses > 0 ? (d.value / project.totalExpenses) * 100 : 0
+                      return (
+                        <div key={d.name}>
+                          <div className="flex justify-between text-xs mb-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: d.fill }} />
+                              <span className="font-medium truncate max-w-[120px]">{d.name}</span>
+                            </div>
+                            <span className="text-muted-foreground font-medium">{fmt(d.value)} <span className="opacity-60">({phasePct.toFixed(1)}%)</span></span>
+                          </div>
+                          <div className="w-full h-2 bg-secondary/20 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full transition-all duration-700" style={{ width: `${phasePct}%`, backgroundColor: d.fill }} />
+                          </div>
+                        </div>
+                      )
+                    })}
+                    {phases && phases.filter(p => p.totalExpenses === 0).length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">{phases.filter(p => p.totalExpenses === 0).length} phase(s) with no spending</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="h-[180px] flex items-center justify-center text-muted-foreground text-sm">
+                    {phases?.length ? "No phase expenses recorded yet." : "No phases defined yet."}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
         {/* ── Phases tab ── */}
-        <TabsContent value="phases">
+        <TabsContent value="phases" className="mt-0">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-sm text-muted-foreground">{phases?.length ?? 0} phase{phases?.length !== 1 ? 's' : ''} defined</p>
-            </div>
+            <p className="text-sm text-muted-foreground">{phases?.length ?? 0} phase{phases?.length !== 1 ? "s" : ""} defined</p>
             <Dialog open={addPhaseOpen} onOpenChange={setAddPhaseOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="gap-2 font-semibold">
@@ -356,9 +605,9 @@ export default function ProjectDetails() {
                 <Card key={phase.id} className="shadow-sm border border-border hover:shadow-md transition-shadow">
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-2 mb-3">
-                      <div>
-                        <p className="font-bold text-foreground">{phase.name}</p>
-                        {phase.description && <p className="text-xs text-muted-foreground mt-0.5">{phase.description}</p>}
+                      <div className="min-w-0">
+                        <p className="font-bold text-foreground truncate">{phase.name}</p>
+                        {phase.description && <p className="text-xs text-muted-foreground mt-0.5 truncate">{phase.description}</p>}
                       </div>
                       <span className={`text-xs uppercase font-bold px-2 py-0.5 rounded-sm border flex-shrink-0 ${STATUS_COLORS[phase.status as keyof typeof STATUS_COLORS]}`}>
                         {STATUS_LABEL[phase.status as keyof typeof STATUS_LABEL]}
@@ -381,9 +630,7 @@ export default function ProjectDetails() {
                         if (open) {
                           setEditPhaseId(phase.id)
                           editPhaseForm.reset({ name: phase.name, description: phase.description || "", status: phase.status as any })
-                        } else {
-                          setEditPhaseId(null)
-                        }
+                        } else setEditPhaseId(null)
                       }}>
                         <DialogTrigger asChild>
                           <Button variant="outline" size="sm" className="flex-1 h-8 text-xs">
@@ -445,20 +692,44 @@ export default function ProjectDetails() {
         </TabsContent>
 
         {/* ── Expenses tab ── */}
-        <TabsContent value="expenses">
+        <TabsContent value="expenses" className="mt-0">
+          <div className="flex flex-wrap gap-3 mb-4">
+            <Input
+              placeholder="Search vendor, category, notes…"
+              value={expenseSearch}
+              onChange={e => setExpenseSearch(e.target.value)}
+              className="h-9 w-full sm:w-64"
+            />
+            <Select value={expenseCatFilter} onValueChange={setExpenseCatFilter}>
+              <SelectTrigger className="h-9 w-full sm:w-44">
+                <SelectValue placeholder="All categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All categories</SelectItem>
+                {allCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            {(expenseSearch || expenseCatFilter !== "all") && (
+              <Button variant="ghost" size="sm" className="h-9" onClick={() => { setExpenseSearch(""); setExpenseCatFilter("all") }}>
+                Clear
+              </Button>
+            )}
+            <span className="ml-auto text-xs text-muted-foreground self-center">{filteredExpenses.length} of {expenses?.length ?? 0}</span>
+          </div>
+
           <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-            {expenses?.length ? (
+            {filteredExpenses.length ? (
               <div className="divide-y divide-border">
-                {expenses.map(expense => (
+                {filteredExpenses.map(expense => (
                   <div key={expense.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-md flex items-center justify-center bg-secondary/10 text-secondary-foreground border border-secondary/20">
                         <Receipt className="w-5 h-5" style={{ color: CATEGORY_COLORS[expense.category] }} />
                       </div>
                       <div>
-                        <p className="font-bold text-foreground">{expense.vendor || 'Unnamed Vendor'}</p>
+                        <p className="font-bold text-foreground">{expense.vendor || "Unnamed Vendor"}</p>
                         <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground mt-0.5">
-                          <span>{format(parseISO(expense.date), 'MMM d, yyyy')}</span>
+                          <span>{format(parseISO(expense.date), "MMM d, yyyy")}</span>
                           {(expense as any).phaseName && <><span>•</span><span className="font-medium text-foreground/70">{(expense as any).phaseName}</span></>}
                           {(expense as any).crew && <><span>•</span><span>Crew: {(expense as any).crew}</span></>}
                           {(expense as any).equipment && <><span>•</span><span>Equip: {(expense as any).equipment}</span></>}
@@ -477,10 +748,16 @@ export default function ProjectDetails() {
               </div>
             ) : (
               <div className="p-12 text-center text-muted-foreground">
-                <p>No expenses recorded for this project.</p>
-                <Link href="/add-expense" className="text-primary text-sm font-medium hover:underline mt-2 inline-block">
-                  + Add your first expense
-                </Link>
+                {expenses?.length ? (
+                  <p>No expenses match your filters.</p>
+                ) : (
+                  <>
+                    <p>No expenses recorded for this project.</p>
+                    <Link href="/add-expense" className="text-primary text-sm font-medium hover:underline mt-2 inline-block">
+                      + Add your first expense
+                    </Link>
+                  </>
+                )}
               </div>
             )}
           </div>

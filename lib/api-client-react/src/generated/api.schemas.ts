@@ -70,10 +70,17 @@ export interface Project {
   /** @nullable */
   location?: string | null;
   budget: number;
+  laborBudget: number;
+  materialBudget: number;
+  estimatedRevenue: number;
   startDate: string;
   status: ProjectStatus;
   totalExpenses: number;
+  laborSpent: number;
+  materialSpent: number;
   remainingBudget: number;
+  profit: number;
+  profitMargin: number;
   createdAt: string;
 }
 
@@ -241,25 +248,12 @@ export interface UpdateInventoryItemBody {
   projectId?: number | null;
 }
 
-export type ExpenseCategory =
-  (typeof ExpenseCategory)[keyof typeof ExpenseCategory];
-
-export const ExpenseCategory = {
-  Materials: "Materials",
-  Labor: "Labor",
-  Fuel: "Fuel",
-  Equipment_Rental: "Equipment Rental",
-  Tools: "Tools",
-  Permits: "Permits",
-  Misc: "Misc",
-} as const;
-
 export interface Expense {
   id: number;
   projectId: number;
   /** @nullable */
   projectName?: string | null;
-  category: ExpenseCategory;
+  category: string;
   amount: number;
   /** @nullable */
   vendor?: string | null;
@@ -271,22 +265,9 @@ export interface Expense {
   createdAt: string;
 }
 
-export type CreateExpenseBodyCategory =
-  (typeof CreateExpenseBodyCategory)[keyof typeof CreateExpenseBodyCategory];
-
-export const CreateExpenseBodyCategory = {
-  Materials: "Materials",
-  Labor: "Labor",
-  Fuel: "Fuel",
-  Equipment_Rental: "Equipment Rental",
-  Tools: "Tools",
-  Permits: "Permits",
-  Misc: "Misc",
-} as const;
-
 export interface CreateExpenseBody {
   projectId: number;
-  category: CreateExpenseBodyCategory;
+  category: string;
   amount: number;
   /** @nullable */
   vendor?: string | null;
@@ -297,22 +278,9 @@ export interface CreateExpenseBody {
   receiptUrl?: string | null;
 }
 
-export type UpdateExpenseBodyCategory =
-  (typeof UpdateExpenseBodyCategory)[keyof typeof UpdateExpenseBodyCategory];
-
-export const UpdateExpenseBodyCategory = {
-  Materials: "Materials",
-  Labor: "Labor",
-  Fuel: "Fuel",
-  Equipment_Rental: "Equipment Rental",
-  Tools: "Tools",
-  Permits: "Permits",
-  Misc: "Misc",
-} as const;
-
 export interface UpdateExpenseBody {
   projectId?: number;
-  category?: UpdateExpenseBodyCategory;
+  category?: string;
   amount?: number;
   /** @nullable */
   vendor?: string | null;

@@ -15,9 +15,16 @@ export interface Project {
   /** @nullable */
   location?: string | null;
   budget: number;
+  laborBudget: number;
+  materialBudget: number;
+  estimatedRevenue: number;
   startDate: string;
   status: ProjectStatus;
   totalExpenses: number;
+  laborSpent: number;
+  materialSpent: number;
   remainingBudget: number;
+  profit: number;
+  profitMargin: number;
   createdAt: string;
 }
