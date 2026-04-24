@@ -9,6 +9,9 @@ import aiInsightsRouter from "./ai-insights";
 import analyticsRouter from "./analytics";
 import crewRouter from "./crew";
 import inventoryRouter from "./inventory";
+import settingsRouter from "./settings";
+import notificationsRouter from "./notifications";
+import publicRouter from "./public";
 
 const router: IRouter = Router();
 
@@ -22,5 +25,8 @@ router.use(aiInsightsRouter);
 router.use(analyticsRouter);
 router.use(crewRouter);
 router.use(inventoryRouter);
+router.use(settingsRouter);
+router.use(notificationsRouter);
+router.use(publicRouter);
 
 export default router;

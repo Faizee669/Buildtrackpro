@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, projectsTable, expensesTable } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
 import {
   CreateProjectBody,
   UpdateProjectBody,
@@ -8,6 +8,8 @@ import {
   UpdateProjectParams,
   DeleteProjectParams,
 } from "@workspace/api-zod";
+import { requireAuth } from "../middlewares/requireAuth";
+import crypto from "crypto";
 
 const router: IRouter = Router();
 
@@ -50,16 +52,22 @@ async function getProjectExpenseBreakdown(projectId: number) {
   };
 }
 
-async function getProjectWithStats(id: number) {
-  const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, id));
+async function getProjectWithStats(id: number, userId?: string) {
+  const conditions = userId
+    ? and(eq(projectsTable.id, id), eq(projectsTable.userId, userId))
+    : eq(projectsTable.id, id);
+  const [project] = await db.select().from(projectsTable).where(conditions);
   if (!project) return null;
   const { total, labor } = await getProjectExpenseBreakdown(id);
   return projectFinancials(project, total, labor);
 }
 
 // GET /projects
-router.get("/projects", async (_req, res): Promise<void> => {
-  const projects = await db.select().from(projectsTable).orderBy(projectsTable.createdAt);
+router.get("/projects", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.user!.id;
+  const projects = await db.select().from(projectsTable)
+    .where(eq(projectsTable.userId, userId))
+    .orderBy(projectsTable.createdAt);
   const withStats = await Promise.all(
     projects.map(async (p) => {
       const { total, labor } = await getProjectExpenseBreakdown(p.id);
@@ -70,12 +78,14 @@ router.get("/projects", async (_req, res): Promise<void> => {
 });
 
 // POST /projects
-router.post("/projects", async (req, res): Promise<void> => {
+router.post("/projects", requireAuth, async (req, res): Promise<void> => {
   const parsed = CreateProjectBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
+  const userId = req.user!.id;
   const values: Record<string, unknown> = {
     ...parsed.data,
+    userId,
     budget: String(parsed.data.budget),
   };
   if (parsed.data.laborBudget !== undefined) values.laborBudget = String(parsed.data.laborBudget);
@@ -89,18 +99,18 @@ router.post("/projects", async (req, res): Promise<void> => {
 });
 
 // GET /projects/:id
-router.get("/projects/:id", async (req, res): Promise<void> => {
+router.get("/projects/:id", requireAuth, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = GetProjectParams.safeParse({ id: raw });
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
-  const result = await getProjectWithStats(params.data.id);
+  const result = await getProjectWithStats(params.data.id, req.user!.id);
   if (!result) { res.status(404).json({ error: "Project not found" }); return; }
   res.json(result);
 });
 
 // PATCH /projects/:id
-router.patch("/projects/:id", async (req, res): Promise<void> => {
+router.patch("/projects/:id", requireAuth, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = UpdateProjectParams.safeParse({ id: raw });
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
@@ -115,7 +125,10 @@ router.patch("/projects/:id", async (req, res): Promise<void> => {
   if (parsed.data.estimatedRevenue !== undefined) updates.estimatedRevenue = String(parsed.data.estimatedRevenue);
   if (parsed.data.location !== undefined) updates.location = parsed.data.location;
 
-  const [updated] = await db.update(projectsTable).set(updates).where(eq(projectsTable.id, params.data.id)).returning();
+  const [updated] = await db.update(projectsTable)
+    .set(updates)
+    .where(and(eq(projectsTable.id, params.data.id), eq(projectsTable.userId, req.user!.id)))
+    .returning();
   if (!updated) { res.status(404).json({ error: "Project not found" }); return; }
 
   const result = await getProjectWithStats(updated.id);
@@ -123,13 +136,45 @@ router.patch("/projects/:id", async (req, res): Promise<void> => {
 });
 
 // DELETE /projects/:id
-router.delete("/projects/:id", async (req, res): Promise<void> => {
+router.delete("/projects/:id", requireAuth, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = DeleteProjectParams.safeParse({ id: raw });
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
-  const [deleted] = await db.delete(projectsTable).where(eq(projectsTable.id, params.data.id)).returning();
+  const [deleted] = await db.delete(projectsTable)
+    .where(and(eq(projectsTable.id, params.data.id), eq(projectsTable.userId, req.user!.id)))
+    .returning();
   if (!deleted) { res.status(404).json({ error: "Project not found" }); return; }
+  res.sendStatus(204);
+});
+
+// POST /projects/:id/share — generate a share token
+router.post("/projects/:id/share", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id as string);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid project ID" }); return; }
+
+  const [project] = await db.select().from(projectsTable)
+    .where(and(eq(projectsTable.id, id), eq(projectsTable.userId, req.user!.id)));
+  if (!project) { res.status(404).json({ error: "Project not found" }); return; }
+
+  const shareToken = project.shareToken ?? crypto.randomBytes(16).toString("hex");
+  const [updated] = await db.update(projectsTable)
+    .set({ shareToken })
+    .where(eq(projectsTable.id, id))
+    .returning();
+
+  res.json({ shareToken: updated.shareToken });
+});
+
+// DELETE /projects/:id/share — revoke share token
+router.delete("/projects/:id/share", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id as string);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid project ID" }); return; }
+
+  await db.update(projectsTable)
+    .set({ shareToken: null })
+    .where(and(eq(projectsTable.id, id), eq(projectsTable.userId, req.user!.id)));
+
   res.sendStatus(204);
 });
 

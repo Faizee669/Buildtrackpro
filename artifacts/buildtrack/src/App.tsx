@@ -13,29 +13,40 @@ import Analytics from "@/pages/analytics";
 import Jobs from "@/pages/jobs";
 import Crew from "@/pages/crew";
 import Inventory from "@/pages/inventory";
+import Settings from "@/pages/settings";
+import SharePage from "@/pages/share";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
 
 function Router() {
   return (
-    <AppLayout>
-      <Switch>
-        <Route path="/">
-          <Redirect to="/dashboard" />
-        </Route>
-        <Route path="/dashboard" component={Dashboard} />
-        <Route path="/projects" component={Projects} />
-        <Route path="/projects/:id" component={ProjectDetails} />
-        <Route path="/expenses" component={Expenses} />
-        <Route path="/add-expense" component={ExpenseFormPage} />
-        <Route path="/analytics" component={Analytics} />
-        <Route path="/jobs" component={Jobs} />
-        <Route path="/crew" component={Crew} />
-        <Route path="/inventory" component={Inventory} />
-        <Route component={NotFound} />
-      </Switch>
-    </AppLayout>
+    <Switch>
+      {/* Public share page — no auth, no layout */}
+      <Route path="/share/:token" component={SharePage} />
+
+      {/* Authenticated app routes */}
+      <Route>
+        <AppLayout>
+          <Switch>
+            <Route path="/">
+              <Redirect to="/dashboard" />
+            </Route>
+            <Route path="/dashboard" component={Dashboard} />
+            <Route path="/projects" component={Projects} />
+            <Route path="/projects/:id" component={ProjectDetails} />
+            <Route path="/expenses" component={Expenses} />
+            <Route path="/add-expense" component={ExpenseFormPage} />
+            <Route path="/analytics" component={Analytics} />
+            <Route path="/jobs" component={Jobs} />
+            <Route path="/crew" component={Crew} />
+            <Route path="/inventory" component={Inventory} />
+            <Route path="/settings" component={Settings} />
+            <Route component={NotFound} />
+          </Switch>
+        </AppLayout>
+      </Route>
+    </Switch>
   );
 }
 

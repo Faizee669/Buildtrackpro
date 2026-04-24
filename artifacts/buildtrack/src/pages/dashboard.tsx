@@ -28,9 +28,10 @@ import {
 } from "lucide-react"
 import { Link, useLocation } from "wouter"
 import { format, parseISO } from "date-fns"
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { QuickAddDialog } from "@/components/quick-add-dialog"
 import { CATEGORY_COLORS } from "@/lib/utils"
+import { OnboardingWizard } from "@/components/onboarding-wizard"
 
 type ProjectCard = NonNullable<ReturnType<typeof useGetProjectCards>["data"]>[number]
 type SortKey = "spend" | "status" | "name"
@@ -278,6 +279,7 @@ function ProjectCardRow({ project, fmt }: { project: ProjectCard; fmt: (n: numbe
 export default function Dashboard() {
   const { fmt } = useCurrency()
   const [sortKey, setSortKey] = useState<SortKey>("spend")
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats()
   const { data: cards, isLoading: cardsLoading } = useGetProjectCards()
@@ -313,11 +315,25 @@ export default function Dashboard() {
     )
   }
 
+  useEffect(() => {
+    const dismissed = localStorage.getItem("buildtrack-onboarding-dismissed")
+    if (!dismissed && !cardsLoading && cards && cards.length === 0) {
+      setShowOnboarding(true)
+    }
+  }, [cards, cardsLoading])
+
+  const handleDismissOnboarding = () => {
+    localStorage.setItem("buildtrack-onboarding-dismissed", "1")
+    setShowOnboarding(false)
+  }
+
   if (!stats) return null
 
   const blendedMargin = stats.profitMargin ?? 0
 
   return (
+    <>
+    {showOnboarding && <OnboardingWizard onDismiss={handleDismissOnboarding} />}
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Heading + summary pill + actions */}
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
@@ -477,5 +493,6 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
+    </>
   )
 }

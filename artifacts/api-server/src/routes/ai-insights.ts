@@ -1,38 +1,52 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db, expensesTable, projectsTable } from "@workspace/db";
-import { sql, desc } from "drizzle-orm";
+import { sql, desc, eq } from "drizzle-orm";
 import { openai } from "@workspace/integrations-openai-ai-server";
+import { requireAuth } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
 
-router.get("/ai-insights", async (req: Request, res: Response) => {
+router.get("/ai-insights", requireAuth, async (req: Request, res: Response) => {
+  const userId = req.user!.id;
   try {
     const [categoryData, projectData, trendData, totalData] = await Promise.all([
       db.select({
         category: expensesTable.category,
         amount: sql<string>`COALESCE(SUM(${expensesTable.amount}), 0)`,
         count: sql<string>`COUNT(*)`,
-      }).from(expensesTable).groupBy(expensesTable.category).orderBy(desc(sql`SUM(${expensesTable.amount})`)),
+      })
+      .from(expensesTable)
+      .leftJoin(projectsTable, eq(expensesTable.projectId, projectsTable.id))
+      .where(eq(projectsTable.userId, userId))
+      .groupBy(expensesTable.category)
+      .orderBy(desc(sql`SUM(${expensesTable.amount})`)),
 
       db.select({
         projectName: projectsTable.name,
         budget: projectsTable.budget,
         spent: sql<string>`COALESCE(SUM(${expensesTable.amount}), 0)`,
-      }).from(projectsTable)
-        .leftJoin(expensesTable, sql`${expensesTable.projectId} = ${projectsTable.id}`)
-        .groupBy(projectsTable.id, projectsTable.name, projectsTable.budget),
+      })
+      .from(projectsTable)
+      .leftJoin(expensesTable, sql`${expensesTable.projectId} = ${projectsTable.id}`)
+      .where(eq(projectsTable.userId, userId))
+      .groupBy(projectsTable.id, projectsTable.name, projectsTable.budget),
 
       db.select({
-        month: sql<string>`TO_CHAR(DATE_TRUNC('month', date::timestamp), 'Mon YYYY')`,
+        month: sql<string>`TO_CHAR(DATE_TRUNC('month', ${expensesTable.date}::timestamp), 'Mon YYYY')`,
         amount: sql<string>`COALESCE(SUM(${expensesTable.amount}), 0)`,
-      }).from(expensesTable)
-        .where(sql`date::timestamp >= NOW() - INTERVAL '60 days'`)
-        .groupBy(sql`DATE_TRUNC('month', date::timestamp)`)
-        .orderBy(sql`DATE_TRUNC('month', date::timestamp)`),
+      })
+      .from(expensesTable)
+      .leftJoin(projectsTable, eq(expensesTable.projectId, projectsTable.id))
+      .where(sql`${expensesTable.date}::timestamp >= NOW() - INTERVAL '60 days' AND ${projectsTable.userId} = ${userId}`)
+      .groupBy(sql`DATE_TRUNC('month', ${expensesTable.date}::timestamp)`)
+      .orderBy(sql`DATE_TRUNC('month', ${expensesTable.date}::timestamp)`),
 
       db.select({
         total: sql<string>`COALESCE(SUM(${expensesTable.amount}), 0)`,
-      }).from(expensesTable),
+      })
+      .from(expensesTable)
+      .leftJoin(projectsTable, eq(expensesTable.projectId, projectsTable.id))
+      .where(eq(projectsTable.userId, userId)),
     ]);
 
     const totalSpent = parseFloat(totalData[0]?.total ?? "0");
@@ -63,12 +77,6 @@ ${overBudgetProjects.length > 0 ? `Projects at >80% budget utilization: ${overBu
 
 Return ONLY a valid JSON array with this exact format (no markdown, no explanation):
 [{"text": "insight text under 100 chars", "type": "info|warning|tip"}]
-
-Rules:
-- "warning" for budget alerts or unusual spending spikes
-- "tip" for cost-saving suggestions or best practices
-- "info" for factual spending observations
-- Be specific with percentages and dollar amounts
 `;
 
     const response = await openai.chat.completions.create({
@@ -86,10 +94,7 @@ Rules:
       insights = [{ text: "Unable to parse AI response. Try again.", type: "info" }];
     }
 
-    res.json({
-      insights,
-      generatedAt: new Date().toISOString(),
-    });
+    res.json({ insights, generatedAt: new Date().toISOString() });
   } catch (err) {
     console.error("AI insights error:", err);
     res.status(500).json({ error: "Failed to generate insights" });

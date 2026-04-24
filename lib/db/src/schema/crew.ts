@@ -5,6 +5,7 @@ import { projectsTable } from "./projects";
 
 export const crewTable = pgTable("crew", {
   id: serial("id").primaryKey(),
+  userId: text("user_id").notNull().default(""),
   name: text("name").notNull(),
   role: text("role").notNull().default("laborer"),
   dailyRate: numeric("daily_rate", { precision: 12, scale: 2 }).notNull().default("0"),

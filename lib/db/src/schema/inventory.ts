@@ -5,6 +5,7 @@ import { projectsTable } from "./projects";
 
 export const inventoryTable = pgTable("inventory", {
   id: serial("id").primaryKey(),
+  userId: text("user_id").notNull().default(""),
   name: text("name").notNull(),
   unit: text("unit").notNull().default("units"),
   quantity: numeric("quantity", { precision: 12, scale: 2 }).notNull().default("0"),

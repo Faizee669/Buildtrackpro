@@ -12,6 +12,7 @@ import { format, parseISO, startOfWeek, differenceInDays } from "date-fns"
 import {
   ArrowLeft, Edit, Trash2, Receipt, AlertTriangle, Loader2, Plus, Layers,
   TrendingUp, TrendingDown, DollarSign, Hammer, Calendar, MapPin, BarChart2,
+  Share2, Copy, Check, Link2Off,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -100,8 +101,45 @@ export default function ProjectDetails() {
   const [editPhaseId, setEditPhaseId] = useState<number | null>(null)
   const [expenseSearch, setExpenseSearch] = useState("")
   const [expenseCatFilter, setExpenseCatFilter] = useState("all")
+  const [shareToken, setShareToken] = useState<string | null>(null)
+  const [shareOpen, setShareOpen] = useState(false)
+  const [shareLoading, setShareLoading] = useState(false)
+  const [copied, setCopied] = useState(false)
   const queryClient = useQueryClient()
   const { toast } = useToast()
+
+  const handleGenerateShare = async () => {
+    setShareLoading(true)
+    try {
+      const res = await fetch(`/api/projects/${projectId}/share`, { method: "POST", credentials: "include" })
+      if (res.ok) {
+        const data = await res.json()
+        setShareToken(data.shareToken)
+        setShareOpen(true)
+      }
+    } finally {
+      setShareLoading(false)
+    }
+  }
+
+  const handleRevokeShare = async () => {
+    await fetch(`/api/projects/${projectId}/share`, { method: "DELETE", credentials: "include" })
+    setShareToken(null)
+    setShareOpen(false)
+    toast({ title: "Share link revoked" })
+  }
+
+  const shareUrl = shareToken
+    ? `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, "")}/share/${shareToken}`
+    : ""
+
+  const copyShareLink = () => {
+    if (shareUrl) {
+      navigator.clipboard.writeText(shareUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) })
@@ -284,6 +322,53 @@ export default function ProjectDetails() {
           </div>
         </div>
         <div className="flex gap-2 flex-shrink-0">
+          {/* Share button + dialog */}
+          <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="hover-elevate gap-2"
+                onClick={(e) => { if (!shareToken) { e.preventDefault(); handleGenerateShare() } }}
+                disabled={shareLoading}
+              >
+                {shareLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
+                Share
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Share Project Report</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-2">
+                <p className="text-sm text-muted-foreground">
+                  Anyone with this link can view a read-only snapshot of this project's finances.
+                </p>
+                <div className="flex items-center gap-2">
+                  <input
+                    readOnly
+                    value={shareUrl}
+                    className="flex-1 rounded-lg border border-border bg-muted px-3 py-2 text-xs font-mono focus:outline-none truncate"
+                  />
+                  <Button size="sm" onClick={copyShareLink} className="flex-shrink-0 gap-1.5">
+                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {copied ? "Copied" : "Copy"}
+                  </Button>
+                </div>
+                <div className="pt-2 border-t border-card-border">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-destructive border-destructive/30 hover:bg-destructive/5 gap-2"
+                    onClick={handleRevokeShare}
+                  >
+                    <Link2Off className="w-4 h-4" /> Revoke Link
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           <Dialog open={editOpen} onOpenChange={setEditOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="hover-elevate">

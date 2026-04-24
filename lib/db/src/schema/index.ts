@@ -4,3 +4,4 @@ export * from "./phases";
 export * from "./expenses";
 export * from "./crew";
 export * from "./inventory";
+export * from "./notifications";

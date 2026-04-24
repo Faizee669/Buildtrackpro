@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
-import { db, phasesTable, expensesTable, insertPhaseSchema } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { db, phasesTable, expensesTable, projectsTable, insertPhaseSchema } from "@workspace/db";
+import { eq, sql, and } from "drizzle-orm";
+import { requireAuth } from "../middlewares/requireAuth";
 
 const CreatePhaseBody = insertPhaseSchema.omit({ projectId: true });
 const UpdatePhaseBody = insertPhaseSchema.partial();
@@ -8,9 +9,14 @@ const UpdatePhaseBody = insertPhaseSchema.partial();
 const router: IRouter = Router();
 
 // GET /projects/:projectId/phases
-router.get("/projects/:projectId/phases", async (req, res): Promise<void> => {
+router.get("/projects/:projectId/phases", requireAuth, async (req, res): Promise<void> => {
   const projectId = parseInt(req.params.projectId as string);
   if (isNaN(projectId)) { res.status(400).json({ error: "Invalid project ID" }); return; }
+
+  // Verify project belongs to user
+  const [project] = await db.select().from(projectsTable)
+    .where(and(eq(projectsTable.id, projectId), eq(projectsTable.userId, req.user!.id)));
+  if (!project) { res.status(404).json({ error: "Project not found" }); return; }
 
   const phases = await db
     .select({
@@ -37,9 +43,14 @@ router.get("/projects/:projectId/phases", async (req, res): Promise<void> => {
 });
 
 // POST /projects/:projectId/phases
-router.post("/projects/:projectId/phases", async (req, res): Promise<void> => {
+router.post("/projects/:projectId/phases", requireAuth, async (req, res): Promise<void> => {
   const projectId = parseInt(req.params.projectId as string);
   if (isNaN(projectId)) { res.status(400).json({ error: "Invalid project ID" }); return; }
+
+  // Verify project belongs to user
+  const [project] = await db.select().from(projectsTable)
+    .where(and(eq(projectsTable.id, projectId), eq(projectsTable.userId, req.user!.id)));
+  if (!project) { res.status(404).json({ error: "Project not found" }); return; }
 
   const parsed = CreatePhaseBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
@@ -49,7 +60,7 @@ router.post("/projects/:projectId/phases", async (req, res): Promise<void> => {
 });
 
 // PATCH /phases/:id
-router.patch("/phases/:id", async (req, res): Promise<void> => {
+router.patch("/phases/:id", requireAuth, async (req, res): Promise<void> => {
   const id = parseInt(req.params.id as string);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid phase ID" }); return; }
 
@@ -75,7 +86,7 @@ router.patch("/phases/:id", async (req, res): Promise<void> => {
 });
 
 // DELETE /phases/:id
-router.delete("/phases/:id", async (req, res): Promise<void> => {
+router.delete("/phases/:id", requireAuth, async (req, res): Promise<void> => {
   const id = parseInt(req.params.id as string);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid phase ID" }); return; }
 

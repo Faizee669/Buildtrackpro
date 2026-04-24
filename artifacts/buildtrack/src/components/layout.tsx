@@ -21,10 +21,12 @@ import {
   Search,
   Bell,
   Menu,
+  Settings,
 } from "lucide-react"
 import { useAuth } from "@workspace/replit-auth-web"
 import { useCurrency, CURRENCIES, type CurrencyCode } from "@/lib/currency-context"
 import { LoginPage } from "@/components/login-page"
+import { NotificationsBell } from "@/components/notifications-bell"
 
 const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -34,6 +36,7 @@ const navItems = [
   { title: "Inventory", url: "/inventory", icon: Package },
   { title: "Job & Site", url: "/jobs", icon: Building2 },
   { title: "Analytics", url: "/analytics", icon: TrendingUp },
+  { title: "Settings", url: "/settings", icon: Settings },
 ]
 
 function CurrencySelector() {
@@ -262,13 +265,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
-            <button
-              className="hidden sm:block text-muted-foreground hover:text-primary transition-colors relative p-2 rounded-md hover:bg-muted"
-              aria-label="Notifications"
-            >
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
-            </button>
+            <div className="hidden sm:block">
+              <NotificationsBell />
+            </div>
             <CurrencySelector />
             <Link href="/add-expense" className="hidden sm:block">
               <button className="gradient-primary text-primary-foreground font-semibold py-2 px-4 rounded-lg shadow-md shadow-primary/20 hover:opacity-95 text-sm flex items-center gap-2">
