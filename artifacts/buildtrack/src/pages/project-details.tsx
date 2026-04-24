@@ -65,14 +65,14 @@ function KpiChip({ label, value, sub, highlight, icon: Icon }: {
   }
   return (
     <Card className="shadow-sm border border-border">
-      <CardContent className="p-4">
+      <CardContent className="p-3 sm:p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wide truncate">{label}</p>
-            <p className={`text-2xl font-display font-bold mt-1 truncate ${highlight ? colors[highlight] : ""}`}>{value}</p>
-            {sub && <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}
+            <p className="text-[10px] sm:text-xs font-semibold uppercase text-muted-foreground tracking-wide truncate">{label}</p>
+            <p className={`text-lg sm:text-2xl font-display font-bold mt-1 truncate ${highlight ? colors[highlight] : ""}`}>{value}</p>
+            {sub && <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}
           </div>
-          {Icon && <Icon className="w-5 h-5 text-muted-foreground/50 flex-shrink-0 mt-1" />}
+          {Icon && <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground/50 flex-shrink-0 mt-1" />}
         </div>
       </CardContent>
     </Card>

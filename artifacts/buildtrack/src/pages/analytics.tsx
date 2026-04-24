@@ -122,8 +122,8 @@ export default function Analytics() {
   const isAnyLoading = sumLoading || trendLoading || dailyLoading || dowLoading || projLoading || radarLoading
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Advanced Analytics</h1>
           <p className="text-muted-foreground text-sm mt-1">
@@ -131,7 +131,7 @@ export default function Analytics() {
           </p>
         </div>
         {isAnyLoading && (
-          <span className="text-xs text-muted-foreground animate-pulse">Loading data…</span>
+          <span className="text-xs text-muted-foreground animate-pulse flex-shrink-0">Loading…</span>
         )}
       </div>
 

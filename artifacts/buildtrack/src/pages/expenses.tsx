@@ -147,8 +147,69 @@ export default function Expenses() {
         )}
       </div>
 
-      {/* Table */}
-      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+      {/* Mobile card list */}
+      <div className="md:hidden space-y-3">
+        {isLoading ? (
+          <div className="py-12 flex justify-center">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : filteredExpenses.length === 0 ? (
+          <div className="py-12 flex flex-col items-center gap-2 text-muted-foreground bg-card rounded-xl border border-border">
+            <Receipt className="w-8 h-8 opacity-20" />
+            <span className="text-sm">No expenses found.</span>
+          </div>
+        ) : (
+          filteredExpenses.map((expense) => (
+            <div key={expense.id} className="bg-card rounded-xl border border-border shadow-sm p-4">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-foreground truncate">{expense.vendor || 'N/A'}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(expense.date), 'MMM d, yyyy')}</p>
+                </div>
+                <div className="flex-shrink-0 text-right">
+                  <p className="font-display font-bold text-foreground">{fmt(expense.amount)}</p>
+                  {expense.receiptUrl && (
+                    <a href={expense.receiptUrl} target="_blank" rel="noreferrer" className="inline-block mt-1 text-blue-500">
+                      <ImageIcon className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border"
+                  style={{
+                    backgroundColor: `color-mix(in srgb, ${CATEGORY_COLORS[expense.category]} 10%, transparent)`,
+                    color: CATEGORY_COLORS[expense.category],
+                    borderColor: `color-mix(in srgb, ${CATEGORY_COLORS[expense.category]} 20%, transparent)`
+                  }}>
+                  {expense.category}
+                </span>
+                <Link href={`/projects/${expense.projectId}`} className="text-xs text-primary hover:underline truncate">
+                  {expense.projectName}
+                </Link>
+              </div>
+              {(expense.notes || (expense as any).phaseName) && (
+                <p className="text-xs text-muted-foreground truncate mb-3">
+                  {(expense as any).phaseName && <span className="font-medium">{(expense as any).phaseName} · </span>}
+                  {expense.notes}
+                </p>
+              )}
+              <div className="flex justify-end border-t border-border pt-2 -mb-1">
+                <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1" onClick={() => {
+                  if (confirm("Delete this expense?")) {
+                    deleteMutation.mutate({ id: expense.id });
+                  }
+                }}>
+                  <Trash2 className="w-3.5 h-3.5" /> Delete
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block bg-card rounded-xl border border-border shadow-sm overflow-hidden">
         <Table>
           <TableHeader className="bg-secondary/5">
             <TableRow>

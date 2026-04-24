@@ -310,10 +310,43 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </nav>
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto w-full">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 md:pb-8 overflow-y-auto w-full">
           <div className="max-w-7xl mx-auto w-full">{children}</div>
         </main>
       </div>
+
+      {/* Mobile bottom navigation bar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-card-border safe-area-bottom">
+        <div className="flex items-stretch h-16">
+          {[
+            { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
+            { href: "/projects", icon: HardHat, label: "Projects" },
+            { href: "/expenses", icon: Receipt, label: "Expenses" },
+            { href: "/crew", icon: Users, label: "Crew" },
+            { href: "/analytics", icon: TrendingUp, label: "Analytics" },
+          ].map((item) => {
+            const active =
+              location === item.href ||
+              (item.href !== "/dashboard" && location.startsWith(item.href))
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-col items-center justify-center gap-1 flex-1 transition-colors ${
+                  active
+                    ? "text-primary bg-primary/5"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <item.icon className={`w-5 h-5 ${active ? "stroke-[2.5]" : "stroke-2"}`} />
+                <span className={`text-[9px] font-semibold tracking-wide ${active ? "text-primary" : ""}`}>
+                  {item.label}
+                </span>
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
     </SidebarProvider>
   )
 }
