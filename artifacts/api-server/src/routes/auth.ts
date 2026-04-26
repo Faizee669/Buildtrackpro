@@ -19,18 +19,13 @@ import {
 const router: IRouter = Router();
 
 function setSessionCookie(req: Request, res: Response, sid: string) {
-  const forwardedProto = req.headers["x-forwarded-proto"];
-  const isHttps =
-    req.secure ||
-    forwardedProto === "https" ||
-    (Array.isArray(forwardedProto) && forwardedProto.includes("https"));
-
-  // Cross-domain (Vercel frontend → Railway backend) requires sameSite=none + secure
-  const isCrossDomain = process.env.NODE_ENV === "production" && !!process.env.FRONTEND_URL;
+  // If we have a FRONTEND_URL, we are in a cross-domain setup (Vercel -> Railway)
+  // This requires SameSite=None and Secure=true
+  const isCrossDomain = !!process.env.FRONTEND_URL;
 
   res.cookie(SESSION_COOKIE, sid, {
     httpOnly: true,
-    secure: isHttps || isCrossDomain,
+    secure: isCrossDomain, // Must be secure for SameSite=None
     sameSite: isCrossDomain ? "none" : "lax",
     path: "/",
     maxAge: SESSION_TTL,

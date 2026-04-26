@@ -61,10 +61,11 @@ export async function clearSession(
 ): Promise<void> {
   if (sid) await deleteSession(sid);
   
-  const isCrossDomain = process.env.NODE_ENV === "production" && !!process.env.FRONTEND_URL;
+  const isCrossDomain = !!process.env.FRONTEND_URL;
   res.clearCookie(SESSION_COOKIE, { 
     path: "/",
-    ...(isCrossDomain ? { sameSite: "none", secure: true } : {})
+    secure: isCrossDomain,
+    sameSite: isCrossDomain ? "none" : "lax"
   });
 }
 
