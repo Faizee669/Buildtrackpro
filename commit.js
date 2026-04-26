@@ -2,8 +2,8 @@ const { execSync } = require('child_process');
 
 try {
   execSync('git add .', { stdio: 'inherit' });
-  execSync('git commit -m "Fix auth and Vercel URL paths"', { stdio: 'inherit' });
-  execSync('git push', { stdio: 'inherit' });
+  execSync('git commit -m "Update"', { stdio: 'inherit' });
+  execSync('git push origin master', { stdio: 'inherit' });
 } catch (e) {
-  console.error(e);
+  console.error(e.message);
 }

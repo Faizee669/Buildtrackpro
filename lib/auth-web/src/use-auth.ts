@@ -16,7 +16,7 @@ export function useAuth(): AuthState {
   const queryClient = useQueryClient();
   const isRestoring = useIsRestoring();
 
-  const { data: user, isLoading } = useQuery({
+  const { data: user, isLoading, isFetching } = useQuery({
     queryKey: ["authUser"],
     queryFn: async () => {
       const apiBase = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_BASE_URL) || "";
@@ -25,10 +25,9 @@ export function useAuth(): AuthState {
       const data = await res.json() as { user: AuthUser | null };
       return data.user ?? null;
     },
-    // Prevent clearing cache aggressively
     staleTime: 1000 * 60 * 60, // 1 hour
-    gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days (persists in IDB)
-    retry: false, // Don't aggressively retry auth calls when offline
+    gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days
+    retry: false,
   });
 
   const login = useCallback(() => {
@@ -43,10 +42,13 @@ export function useAuth(): AuthState {
     window.location.href = `${apiBase}/api/logout`;
   }, [queryClient]);
 
+  // isLoading: true while first fetch in flight OR while restoring from IDB cache OR while refetching after reload
+  // This prevents the login page flash when the user IS logged in but auth check isn't done yet
+  const authLoading = isLoading || isRestoring || (isFetching && user === undefined);
+
   return {
     user: user ?? null,
-    // When offline, React Query uses cached data immediately, so isLoading is false
-    isLoading: isLoading || isRestoring,
+    isLoading: authLoading,
     isAuthenticated: !!user,
     login,
     logout,
