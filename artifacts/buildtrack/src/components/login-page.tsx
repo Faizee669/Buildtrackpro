@@ -20,18 +20,22 @@ export function LoginPage() {
     setLoading(true)
     const endpoint = mode === "email-login" ? "/api/auth/login/email" : "/api/auth/register"
     const apiBase = import.meta.env.VITE_API_BASE_URL || ""
+    const url = `${apiBase}${endpoint}`
     try {
-      const res = await fetch(`${apiBase}${endpoint}`, {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(form),
       })
       const data = await res.json()
-      if (!res.ok) setError(data.error || "Something went wrong. Please try again.")
-      else window.location.reload()
-    } catch {
-      setError("Network error. Please try again.")
+      if (!res.ok) {
+        setError(`Error ${res.status}: ${data.error || "Something went wrong"}`)
+      } else {
+        window.location.reload()
+      }
+    } catch (err) {
+      setError(`Network error — could not reach ${url}. Check your internet or backend URL.`)
     } finally {
       setLoading(false)
     }
