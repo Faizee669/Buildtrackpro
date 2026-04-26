@@ -19,8 +19,9 @@ export function LoginPage() {
     setError("")
     setLoading(true)
     const endpoint = mode === "email-login" ? "/api/auth/login/email" : "/api/auth/register"
+    const apiBase = import.meta.env.VITE_API_BASE_URL || ""
     try {
-      const res = await fetch(`${baseUrl}${endpoint}`, {
+      const res = await fetch(`${apiBase}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

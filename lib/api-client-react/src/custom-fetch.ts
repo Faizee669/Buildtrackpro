@@ -271,11 +271,18 @@ async function parseSuccessBody(
   }
 }
 
+const API_BASE = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_BASE_URL) || "";
+
 export async function customFetch<T = unknown>(
   input: RequestInfo | URL,
   options: CustomFetchOptions = {},
 ): Promise<T> {
   const { responseType = "auto", headers: headersInit, ...init } = options;
+
+  // Prefix relative /api paths with the backend base URL in production
+  if (API_BASE && typeof input === "string" && input.startsWith("/api")) {
+    input = `${API_BASE}${input}`;
+  }
 
   const method = resolveMethod(input, init.method);
 
@@ -299,7 +306,7 @@ export async function customFetch<T = unknown>(
 
   const requestInfo = { method, url: resolveUrl(input) };
 
-  const response = await fetch(input, { ...init, method, headers });
+  const response = await fetch(input, { ...init, method, headers, credentials: "include" });
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);

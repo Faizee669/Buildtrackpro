@@ -60,7 +60,12 @@ export async function clearSession(
   sid?: string,
 ): Promise<void> {
   if (sid) await deleteSession(sid);
-  res.clearCookie(SESSION_COOKIE, { path: "/" });
+  
+  const isCrossDomain = process.env.NODE_ENV === "production" && !!process.env.FRONTEND_URL;
+  res.clearCookie(SESSION_COOKIE, { 
+    path: "/",
+    ...(isCrossDomain ? { sameSite: "none", secure: true } : {})
+  });
 }
 
 export function getSessionId(req: Request): string | undefined {

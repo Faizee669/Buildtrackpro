@@ -6,7 +6,11 @@ import router from "./routes";
 
 const app: Express = express();
 
-app.use(cors({ credentials: true, origin: true }));
+const allowedOrigins = process.env.FRONTEND_URL
+  ? [process.env.FRONTEND_URL, "http://localhost:5173"]
+  : true; // allow all in development
+
+app.use(cors({ credentials: true, origin: allowedOrigins }));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

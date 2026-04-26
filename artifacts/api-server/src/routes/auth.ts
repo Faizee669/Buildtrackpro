@@ -25,10 +25,13 @@ function setSessionCookie(req: Request, res: Response, sid: string) {
     forwardedProto === "https" ||
     (Array.isArray(forwardedProto) && forwardedProto.includes("https"));
 
+  // Cross-domain (Vercel frontend → Railway backend) requires sameSite=none + secure
+  const isCrossDomain = process.env.NODE_ENV === "production" && !!process.env.FRONTEND_URL;
+
   res.cookie(SESSION_COOKIE, sid, {
     httpOnly: true,
-    secure: isHttps,
-    sameSite: "lax",
+    secure: isHttps || isCrossDomain,
+    sameSite: isCrossDomain ? "none" : "lax",
     path: "/",
     maxAge: SESSION_TTL,
   });
