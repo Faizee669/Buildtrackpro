@@ -32,6 +32,9 @@ export function LoginPage() {
       if (!res.ok) {
         setError(`Error ${res.status}: ${data.error || "Something went wrong"}`)
       } else {
+        if (data.sid) {
+          localStorage.setItem("bt_sid", data.sid);
+        }
         window.location.reload()
       }
     } catch (err) {

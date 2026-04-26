@@ -97,7 +97,7 @@ router.post("/auth/register", async (req: Request, res: Response) => {
 
   const sid = await createSession(sessionData);
   setSessionCookie(req, res, sid);
-  res.json({ success: true });
+  res.json({ success: true, sid });
 });
 
 router.post("/auth/login/email", async (req: Request, res: Response) => {
@@ -151,7 +151,7 @@ router.post("/auth/login/email", async (req: Request, res: Response) => {
 
   const sid = await createSession(sessionData);
   setSessionCookie(req, res, sid);
-  res.json({ success: true });
+  res.json({ success: true, sid });
 });
 
 

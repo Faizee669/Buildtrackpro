@@ -20,7 +20,14 @@ export function useAuth(): AuthState {
     queryKey: ["authUser"],
     queryFn: async () => {
       const apiBase = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_BASE_URL) || "";
-      const res = await fetch(`${apiBase}/api/auth/user`, { credentials: "include" });
+      const sid = typeof window !== "undefined" ? localStorage.getItem("bt_sid") : null;
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (sid) headers["Authorization"] = `Bearer ${sid}`;
+
+      const res = await fetch(`${apiBase}/api/auth/user`, { 
+        credentials: "include",
+        headers
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json() as { user: AuthUser | null };
       return data.user ?? null;
@@ -38,6 +45,7 @@ export function useAuth(): AuthState {
   const logout = useCallback(() => {
     // Immediately clear local cache so the UI updates without waiting for network
     queryClient.setQueryData(["authUser"], null);
+    if (typeof window !== "undefined") localStorage.removeItem("bt_sid");
     const apiBase = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_BASE_URL) || "";
     window.location.href = `${apiBase}/api/logout`;
   }, [queryClient]);

@@ -306,6 +306,12 @@ export async function customFetch<T = unknown>(
 
   const requestInfo = { method, url: resolveUrl(input) };
 
+  // Add Authorization header fallback if we have a saved session token
+  const sid = typeof window !== "undefined" ? localStorage.getItem("bt_sid") : null;
+  if (sid && !headers.has("authorization")) {
+    headers.set("authorization", `Bearer ${sid}`);
+  }
+
   const response = await fetch(input, { ...init, method, headers, credentials: "include" });
 
   if (!response.ok) {
