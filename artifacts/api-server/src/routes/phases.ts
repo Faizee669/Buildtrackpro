@@ -2,11 +2,23 @@ import { Router, type IRouter } from "express";
 import { db, phasesTable, expensesTable, projectsTable, insertPhaseSchema } from "@workspace/db";
 import { eq, sql, and } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
+import { logAuditEvent } from "../lib/audit";
 
 const CreatePhaseBody = insertPhaseSchema.omit({ projectId: true });
 const UpdatePhaseBody = insertPhaseSchema.partial();
 
 const router: IRouter = Router();
+
+async function getOwnedPhase(id: number, userId: string) {
+  const [phase] = await db
+    .select({ id: phasesTable.id })
+    .from(phasesTable)
+    .innerJoin(projectsTable, eq(phasesTable.projectId, projectsTable.id))
+    .where(and(eq(phasesTable.id, id), eq(projectsTable.userId, userId)))
+    .limit(1);
+
+  return phase ?? null;
+}
 
 // GET /projects/:projectId/phases
 router.get("/projects/:projectId/phases", requireAuth, async (req, res): Promise<void> => {
@@ -56,6 +68,14 @@ router.post("/projects/:projectId/phases", requireAuth, async (req, res): Promis
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const [phase] = await db.insert(phasesTable).values({ projectId, ...parsed.data }).returning();
+  await logAuditEvent({
+    userId: req.user!.id,
+    action: "created",
+    entityType: "phase",
+    entityId: phase.id,
+    summary: `Created phase "${phase.name}"`,
+    metadata: { phaseId: phase.id, projectId: phase.projectId },
+  });
   res.status(201).json({ ...phase, totalExpenses: 0, expenseCount: 0 });
 });
 
@@ -66,9 +86,24 @@ router.patch("/phases/:id", requireAuth, async (req, res): Promise<void> => {
 
   const parsed = UpdatePhaseBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  if (parsed.data.projectId !== undefined) {
+    res.status(400).json({ error: "Phase project cannot be changed" });
+    return;
+  }
 
-  const [updated] = await db.update(phasesTable).set(parsed.data).where(eq(phasesTable.id, id)).returning();
+  const ownedPhase = await getOwnedPhase(id, req.user!.id);
+  if (!ownedPhase) { res.status(404).json({ error: "Phase not found" }); return; }
+
+  const [updated] = await db.update(phasesTable).set(parsed.data).where(eq(phasesTable.id, ownedPhase.id)).returning();
   if (!updated) { res.status(404).json({ error: "Phase not found" }); return; }
+  await logAuditEvent({
+    userId: req.user!.id,
+    action: "updated",
+    entityType: "phase",
+    entityId: updated.id,
+    summary: `Updated phase "${updated.name}"`,
+    metadata: { phaseId: updated.id, changes: Object.keys(parsed.data) },
+  });
 
   const [agg] = await db
     .select({
@@ -90,8 +125,19 @@ router.delete("/phases/:id", requireAuth, async (req, res): Promise<void> => {
   const id = parseInt(req.params.id as string);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid phase ID" }); return; }
 
-  const [deleted] = await db.delete(phasesTable).where(eq(phasesTable.id, id)).returning();
+  const ownedPhase = await getOwnedPhase(id, req.user!.id);
+  if (!ownedPhase) { res.status(404).json({ error: "Phase not found" }); return; }
+
+  const [deleted] = await db.delete(phasesTable).where(eq(phasesTable.id, ownedPhase.id)).returning();
   if (!deleted) { res.status(404).json({ error: "Phase not found" }); return; }
+  await logAuditEvent({
+    userId: req.user!.id,
+    action: "deleted",
+    entityType: "phase",
+    entityId: deleted.id,
+    summary: `Deleted phase "${deleted.name}"`,
+    metadata: { phaseId: deleted.id, projectId: deleted.projectId },
+  });
 
   res.sendStatus(204);
 });

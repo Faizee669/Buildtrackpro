@@ -1,5 +1,5 @@
 {
-  "name": "@workspace/replit-auth-web",
+  "name": "@workspace/auth-web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,6 +7,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
+    "@tanstack/react-query": "catalog:",
     "@workspace/api-client-react": "workspace:*"
   },
   "peerDependencies": {

@@ -10,7 +10,9 @@ tags:
   - name: health
     description: Health operations
   - name: Auth
-    description: Browser and mobile authentication endpoints.
+    description: Email/password authentication endpoints.
+  - name: audit
+    description: Activity and audit log operations.
   - name: projects
     description: Project management
   - name: expenses
@@ -48,95 +50,55 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthUserEnvelope'
 
-  /login:
-    get:
-      tags: [Auth]
-      operationId: beginBrowserLogin
-      summary: Start the browser OIDC login flow
-      parameters:
-        - name: returnTo
-          in: query
-          required: false
-          schema:
-            type: string
-      responses:
-        '302':
-          description: Redirect to the OIDC authorization endpoint.
-
-  /callback:
-    get:
-      tags: [Auth]
-      operationId: handleBrowserLoginCallback
-      summary: Complete the browser OIDC login flow
-      parameters:
-        - name: code
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: state
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: iss
-          in: query
-          required: false
-          schema:
-            type: string
-            format: uri
-      responses:
-        '302':
-          description: Redirect on success or failure.
-
-  /logout:
-    get:
-      tags: [Auth]
-      operationId: logoutBrowserSession
-      summary: Clear the session and begin OIDC logout
-      parameters:
-        - $ref: '#/components/parameters/AuthorizationSessionHeader'
-        - $ref: '#/components/parameters/SessionCookie'
-      responses:
-        '302':
-          description: Redirect to the OIDC provider logout URL.
-
-  /mobile-auth/token-exchange:
+  /auth/register:
     post:
       tags: [Auth]
-      operationId: exchangeMobileAuthorizationCode
-      summary: Exchange a mobile OIDC code for a session token
+      operationId: registerWithEmail
+      summary: Register a local account and start a session
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MobileTokenExchangeRequest'
+              $ref: '#/components/schemas/RegisterWithEmailBody'
       responses:
         '200':
-          description: Session created successfully.
+          description: Registered and signed in.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MobileTokenExchangeSuccess'
-        '400':
-          description: Missing or invalid required fields.
+                $ref: '#/components/schemas/RegisterWithEmailResponse'
+
+  /auth/login/email:
+    post:
+      tags: [Auth]
+      operationId: loginWithEmail
+      summary: Sign in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginWithEmailBody'
+      responses:
+        '200':
+          description: Signed in successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '401':
-          description: Token did not contain usable claims.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '500':
-          description: Token exchange failed.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
+                $ref: '#/components/schemas/LoginWithEmailResponse'
+
+  /logout:
+    get:
+      tags: [Auth]
+      operationId: logoutBrowserSession
+      summary: Clear the session and redirect to app root
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationSessionHeader'
+        - $ref: '#/components/parameters/SessionCookie'
+      responses:
+        '302':
+          description: Redirect to app root.
 
   /mobile-auth/logout:
     post:
@@ -152,6 +114,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LogoutSuccess'
+
+  /audit-logs:
+    get:
+      operationId: listAuditLogs
+      tags: [audit]
+      summary: List recent audit events for the current user
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Audit events ordered by newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AuditLog"
 
   /projects:
     get:
@@ -862,33 +845,45 @@ components:
             - $ref: '#/components/schemas/AuthUser'
             - type: 'null'
 
-    MobileTokenExchangeRequest:
+    RegisterWithEmailBody:
       type: object
-      required: [code, code_verifier, redirect_uri, state]
+      required: [email, password]
       properties:
-        code:
+        email:
           type: string
           minLength: 1
-        code_verifier:
+        password:
           type: string
           minLength: 1
-        redirect_uri:
+        firstName:
+          type: string
+        lastName:
+          type: string
+
+    RegisterWithEmailResponse:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+
+    LoginWithEmailBody:
+      type: object
+      required: [email, password]
+      properties:
+        email:
           type: string
           minLength: 1
-          format: uri
-        state:
-          type: string
-          minLength: 1
-        nonce:
+        password:
           type: string
           minLength: 1
 
-    MobileTokenExchangeSuccess:
+    LoginWithEmailResponse:
       type: object
-      required: [token]
+      required: [success]
       properties:
-        token:
-          type: string
+        success:
+          type: boolean
 
     LogoutSuccess:
       type: object
@@ -896,6 +891,30 @@ components:
       properties:
         success:
           type: boolean
+
+    AuditLog:
+      type: object
+      required: [id, userId, action, entityType, summary, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        action:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: ["string", "null"]
+        summary:
+          type: string
+        metadata:
+          oneOf:
+            - type: object
+              additionalProperties: true
+            - type: "null"
+        createdAt:
+          type: string
 
     Project:
       type: object
@@ -963,6 +982,12 @@ components:
           type: ["string", "null"]
         budget:
           type: number
+        laborBudget:
+          type: number
+        materialBudget:
+          type: number
+        estimatedRevenue:
+          type: number
         startDate:
           type: string
         status:
@@ -984,6 +1009,12 @@ components:
         location:
           type: ["string", "null"]
         budget:
+          type: number
+        laborBudget:
+          type: number
+        materialBudget:
+          type: number
+        estimatedRevenue:
           type: number
         startDate:
           type: string
@@ -1078,7 +1109,8 @@ components:
         id: { type: integer }
         name: { type: string }
         role: { type: string }
-        dailyRate: { type: number }
+        rate: { type: number }
+        rateType: { type: string }
         phone: { type: ["string", "null"] }
         projectId: { type: ["integer", "null"] }
         status: { type: string }
@@ -1091,7 +1123,8 @@ components:
       properties:
         name: { type: string }
         role: { type: string }
-        dailyRate: { type: number }
+        rate: { type: number }
+        rateType: { type: string }
         phone: { type: ["string", "null"] }
         projectId: { type: ["integer", "null"] }
         status: { type: string }
@@ -1101,7 +1134,8 @@ components:
       properties:
         name: { type: string }
         role: { type: string }
-        dailyRate: { type: number }
+        rate: { type: number }
+        rateType: { type: string }
         phone: { type: ["string", "null"] }
         projectId: { type: ["integer", "null"] }
         status: { type: string }
@@ -1154,11 +1188,19 @@ components:
           type: integer
         projectName:
           type: ["string", "null"]
+        phaseId:
+          type: ["integer", "null"]
+        phaseName:
+          type: ["string", "null"]
         category:
           type: string
         amount:
           type: number
         vendor:
+          type: ["string", "null"]
+        crew:
+          type: ["string", "null"]
+        equipment:
           type: ["string", "null"]
         date:
           type: string

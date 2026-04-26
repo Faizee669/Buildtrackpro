@@ -48,7 +48,7 @@ export default function Projects() {
         toast({ title: "Project created successfully" });
       },
       onError: (error: any) => {
-        toast({ title: "Failed to create project", description: error?.error || "Unknown error", variant: "destructive" });
+        toast({ title: "Failed to create project", description: error?.data?.error || error?.message || "Unknown error", variant: "destructive" });
       }
     }
   });

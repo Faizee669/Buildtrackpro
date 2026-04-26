@@ -11,10 +11,18 @@ export interface Expense {
   projectId: number;
   /** @nullable */
   projectName?: string | null;
+  /** @nullable */
+  phaseId?: number | null;
+  /** @nullable */
+  phaseName?: string | null;
   category: string;
   amount: number;
   /** @nullable */
   vendor?: string | null;
+  /** @nullable */
+  crew?: string | null;
+  /** @nullable */
+  equipment?: string | null;
   date: string;
   /** @nullable */
   notes?: string | null;

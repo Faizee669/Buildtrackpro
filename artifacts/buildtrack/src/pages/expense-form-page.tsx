@@ -21,7 +21,8 @@ const CATEGORIES = ["Possession", "Foundation", "Cement", "Aggregates", "Bricks"
 const formSchema = z.object({
   projectId: z.coerce.number().min(1, "Project is required"),
   phaseId: z.coerce.number().optional().nullable(),
-  category: z.enum(CATEGORIES),
+  category: z.string().min(1, "Category is required"),
+  customCategory: z.string().optional(),
   amount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
   vendor: z.string().optional(),
   crew: z.string().optional(),
@@ -54,7 +55,8 @@ export default function ExpenseFormPage() {
       crew: "",
       equipment: "",
       notes: "",
-      receiptUrl: ""
+      receiptUrl: "",
+      customCategory: ""
     }
   });
 
@@ -64,7 +66,7 @@ export default function ExpenseFormPage() {
   });
 
   const resetForm = useCallback(() => {
-    form.reset({ amount: 0, date: new Date().toISOString().split('T')[0], category: "Possession", vendor: "", crew: "", equipment: "", notes: "", projectId: undefined, phaseId: null });
+    form.reset({ amount: 0, date: new Date().toISOString().split('T')[0], category: "Possession", customCategory: "", vendor: "", crew: "", equipment: "", notes: "", projectId: undefined, phaseId: null });
     setReceiptPreview(null);
     setOcrDetected(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -73,7 +75,7 @@ export default function ExpenseFormPage() {
   const createMutation = useCreateExpense({
     mutation: {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListExpensesQueryKey() });
+        queryClient.invalidateQueries({ queryKey: ['/api/expenses'] });
         queryClient.invalidateQueries({ queryKey: getGetDashboardStatsQueryKey() });
         if (addAnotherRef.current) {
           addAnotherRef.current = false;
@@ -86,7 +88,8 @@ export default function ExpenseFormPage() {
       },
       onError: (err: any) => {
         addAnotherRef.current = false;
-        toast({ title: "Failed to log expense", description: err?.error || "Unknown error", variant: "destructive" });
+        const msg = err?.data?.error || err?.message || "Unknown error";
+        toast({ title: "Failed to log expense", description: msg, variant: "destructive" });
       }
     }
   });
@@ -94,7 +97,16 @@ export default function ExpenseFormPage() {
   const uploadMutation = useUploadReceipt();
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    createMutation.mutate({ data });
+    const finalData = { ...data };
+    if (finalData.category === "Custom") {
+      if (!finalData.customCategory?.trim()) {
+        form.setError("customCategory", { type: "manual", message: "Please specify your custom category" });
+        return;
+      }
+      finalData.category = finalData.customCategory.trim();
+    }
+    delete finalData.customCategory;
+    createMutation.mutate({ data: finalData });
   };
 
   const runOcr = async (file: File) => {
@@ -237,17 +249,30 @@ export default function ExpenseFormPage() {
                         {CATEGORIES.map(c => (
                           <SelectItem key={c} value={c}>{c}</SelectItem>
                         ))}
+                        <SelectItem value="Custom" className="font-semibold text-primary">Custom (Type your own)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
                 )} />
+
+                {form.watch("category") === "Custom" && (
+                  <FormField control={form.control} name="customCategory" render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Custom Category Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="E.g. Crane Rental" {...field} className="h-12 border-border focus:ring-primary" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField control={form.control} name="amount" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount ($)</FormLabel>
+                    <FormLabel>Amount (PKR)</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" className="h-12 font-display text-lg" {...field} />
                     </FormControl>
@@ -367,7 +392,7 @@ export default function ExpenseFormPage() {
                       <img src={receiptPreview} alt="Receipt preview" className="max-h-[150px] object-contain rounded border border-border shadow-sm" />
                       {ocrDetected && (
                         <div className="flex flex-wrap gap-2 justify-center">
-                          {ocrDetected.amount && <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded">Amount: ${ocrDetected.amount}</span>}
+                          {ocrDetected.amount && <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded">Amount: PKR {ocrDetected.amount}</span>}
                           {ocrDetected.vendor && <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded">Vendor: {ocrDetected.vendor}</span>}
                           {ocrDetected.date && <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded">Date: {ocrDetected.date}</span>}
                         </div>

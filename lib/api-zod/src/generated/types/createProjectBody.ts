@@ -14,6 +14,9 @@ export interface CreateProjectBody {
   /** @nullable */
   location?: string | null;
   budget: number;
+  laborBudget?: number;
+  materialBudget?: number;
+  estimatedRevenue?: number;
   startDate: string;
   status: CreateProjectBodyStatus;
 }

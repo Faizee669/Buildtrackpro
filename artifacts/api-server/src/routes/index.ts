@@ -12,6 +12,7 @@ import inventoryRouter from "./inventory";
 import settingsRouter from "./settings";
 import notificationsRouter from "./notifications";
 import publicRouter from "./public";
+import auditLogsRouter from "./audit-logs";
 
 const router: IRouter = Router();
 
@@ -27,6 +28,7 @@ router.use(crewRouter);
 router.use(inventoryRouter);
 router.use(settingsRouter);
 router.use(notificationsRouter);
+router.use(auditLogsRouter);
 router.use(publicRouter);
 
 export default router;

@@ -100,6 +100,9 @@ export interface CreateProjectBody {
   /** @nullable */
   location?: string | null;
   budget: number;
+  laborBudget?: number;
+  materialBudget?: number;
+  estimatedRevenue?: number;
   startDate: string;
   status: CreateProjectBodyStatus;
 }
@@ -120,6 +123,9 @@ export interface UpdateProjectBody {
   /** @nullable */
   location?: string | null;
   budget?: number;
+  laborBudget?: number;
+  materialBudget?: number;
+  estimatedRevenue?: number;
   startDate?: string;
   status?: UpdateProjectBodyStatus;
 }
@@ -176,7 +182,8 @@ export interface CrewMember {
   id: number;
   name: string;
   role: string;
-  dailyRate: number;
+  rate?: number;
+  rateType?: string;
   /** @nullable */
   phone?: string | null;
   /** @nullable */
@@ -189,7 +196,8 @@ export interface CrewMember {
 export interface CreateCrewBody {
   name: string;
   role?: string;
-  dailyRate?: number;
+  rate?: number;
+  rateType?: string;
   /** @nullable */
   phone?: string | null;
   /** @nullable */
@@ -200,7 +208,8 @@ export interface CreateCrewBody {
 export interface UpdateCrewBody {
   name?: string;
   role?: string;
-  dailyRate?: number;
+  rate?: number;
+  rateType?: string;
   /** @nullable */
   phone?: string | null;
   /** @nullable */
@@ -253,10 +262,18 @@ export interface Expense {
   projectId: number;
   /** @nullable */
   projectName?: string | null;
+  /** @nullable */
+  phaseId?: number | null;
+  /** @nullable */
+  phaseName?: string | null;
   category: string;
   amount: number;
   /** @nullable */
   vendor?: string | null;
+  /** @nullable */
+  crew?: string | null;
+  /** @nullable */
+  equipment?: string | null;
   date: string;
   /** @nullable */
   notes?: string | null;

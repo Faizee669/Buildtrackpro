@@ -73,7 +73,7 @@ function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
         onSuccess()
       },
       onError: (err: any) => {
-        toast({ title: "Failed to add expense", description: err?.error || "Unknown error", variant: "destructive" })
+        toast({ title: "Failed to add expense", description: err?.data?.error || err?.message || "Unknown error", variant: "destructive" })
       },
     },
   })
@@ -214,7 +214,7 @@ function ProjectForm({ onSuccess }: { onSuccess: () => void }) {
         onSuccess()
       },
       onError: (err: any) => {
-        toast({ title: "Failed to create project", description: err?.error || "Unknown error", variant: "destructive" })
+        toast({ title: "Failed to create project", description: err?.data?.error || err?.message || "Unknown error", variant: "destructive" })
       },
     },
   })

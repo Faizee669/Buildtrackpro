@@ -5,12 +5,8 @@ import { Input } from "@/components/ui/input"
 
 type Mode = "options" | "email-login" | "email-register"
 
-interface Props {
-  onReplitLogin: () => void
-}
-
-export function LoginPage({ onReplitLogin }: Props) {
-  const [mode, setMode] = useState<Mode>("options")
+export function LoginPage() {
+  const [mode, setMode] = useState<Mode>("email-login")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -111,39 +107,6 @@ export function LoginPage({ onReplitLogin }: Props) {
             </p>
           </div>
 
-          {mode === "options" && (
-            <div className="space-y-4">
-              <button
-                onClick={onReplitLogin}
-                className="w-full flex items-center justify-center gap-2 gradient-primary text-primary-foreground font-semibold py-3 px-6 rounded-lg shadow-md shadow-primary/20 hover:opacity-95 transition-opacity active:scale-[0.98]"
-              >
-                Continue with Replit
-              </button>
-
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-card-border" />
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">or</span>
-                <div className="flex-1 h-px bg-card-border" />
-              </div>
-
-              <div className="space-y-2">
-                <button
-                  onClick={() => setMode("email-login")}
-                  className="w-full flex items-center justify-center gap-2 border border-card-border bg-card hover:bg-muted text-foreground font-semibold py-2.5 px-6 rounded-lg transition-all text-sm"
-                >
-                  <Mail className="w-4 h-4" />
-                  Sign in with Email
-                </button>
-                <button
-                  onClick={() => setMode("email-register")}
-                  className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
-                >
-                  New here? <span className="text-primary font-semibold">Create an account</span>
-                </button>
-              </div>
-            </div>
-          )}
-
           {(mode === "email-login" || mode === "email-register") && (
             <form onSubmit={handleEmailAuth} className="space-y-3">
               {mode === "email-register" && (
@@ -218,17 +181,7 @@ export function LoginPage({ onReplitLogin }: Props) {
                 )}
               </Button>
 
-              <div className="flex items-center justify-between text-sm pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode("options")
-                    setError("")
-                  }}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  ← Back
-                </button>
+              <div className="flex items-center justify-center text-sm pt-1">
                 {mode === "email-login" ? (
                   <button
                     type="button"
@@ -239,7 +192,7 @@ export function LoginPage({ onReplitLogin }: Props) {
                     }}
                     className="text-primary font-semibold hover:underline"
                   >
-                    Create account
+                    Don't have an account? Create one
                   </button>
                 ) : (
                   <button
@@ -251,7 +204,7 @@ export function LoginPage({ onReplitLogin }: Props) {
                     }}
                     className="text-primary font-semibold hover:underline"
                   >
-                    Sign in instead
+                    Already have an account? Sign in
                   </button>
                 )}
               </div>

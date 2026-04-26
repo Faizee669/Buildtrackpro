@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
+import { logAuditEvent } from "../lib/audit";
 
 const router: IRouter = Router();
 
@@ -28,6 +29,14 @@ router.patch("/settings/profile", requireAuth, async (req, res): Promise<void> =
     .returning();
 
   if (!updated) { res.status(404).json({ error: "User not found" }); return; }
+  await logAuditEvent({
+    userId: req.user!.id,
+    action: "updated",
+    entityType: "settings",
+    entityId: req.user!.id,
+    summary: "Updated profile settings",
+    metadata: { changedFields: Object.keys(updates) },
+  });
   res.json(updated);
 });
 

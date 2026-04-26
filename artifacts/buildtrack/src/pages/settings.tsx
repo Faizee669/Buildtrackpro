@@ -290,13 +290,12 @@ export default function Settings() {
       {/* Security section */}
       <Card className="border-card-border shadow-sm">
         <CardContent className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Lock className="w-4 h-4 text-primary" />
-            <h2 className="font-bold text-base">Account</h2>
+          <div className="bg-card border border-card-border rounded-xl p-6 shadow-sm">
+            <h3 className="text-lg font-bold text-foreground mb-4">Account</h3>
+            <p className="text-sm text-muted-foreground">
+              Your account is secured via email and password authentication. Profile details are securely managed.
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Your account is authenticated via Replit. Profile image and email are managed by your Replit account.
-          </p>
         </CardContent>
       </Card>
     </div>

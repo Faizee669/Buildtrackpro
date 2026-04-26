@@ -14,4 +14,17 @@ app.use(authMiddleware);
 
 app.use("/api", router);
 
+// Global error handler to ensure JSON responses
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error("Server Error:", err);
+  const message = err.message || "Internal Server Error";
+  
+  if (message.includes("connect ECONNREFUSED") || message.includes("password authentication failed")) {
+    res.status(500).json({ error: "Database connection failed! You need to add a real DATABASE_URL to your .env file." });
+    return;
+  }
+  
+  res.status(500).json({ error: message });
+});
+
 export default app;

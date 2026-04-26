@@ -1,5 +1,6 @@
 import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { queryClient, persister } from "@/lib/query-client";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayout } from "@/components/layout";
@@ -13,11 +14,13 @@ import Analytics from "@/pages/analytics";
 import Jobs from "@/pages/jobs";
 import Crew from "@/pages/crew";
 import Inventory from "@/pages/inventory";
+import ActivityLog from "@/pages/activity-log";
+import MasterLedger from "@/pages/master-ledger";
 import Settings from "@/pages/settings";
 import SharePage from "@/pages/share";
 import NotFound from "@/pages/not-found";
 
-const queryClient = new QueryClient();
+
 
 function Router() {
   return (
@@ -41,6 +44,8 @@ function Router() {
             <Route path="/jobs" component={Jobs} />
             <Route path="/crew" component={Crew} />
             <Route path="/inventory" component={Inventory} />
+            <Route path="/activity" component={ActivityLog} />
+            <Route path="/ledger" component={MasterLedger} />
             <Route path="/settings" component={Settings} />
             <Route component={NotFound} />
           </Switch>
@@ -52,7 +57,7 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
       <CurrencyProvider>
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
@@ -61,7 +66,7 @@ function App() {
           <Toaster />
         </TooltipProvider>
       </CurrencyProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }
 

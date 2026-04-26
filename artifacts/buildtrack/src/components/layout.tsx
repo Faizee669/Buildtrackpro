@@ -18,12 +18,14 @@ import {
   Building2,
   Users,
   Package,
+  History,
   Search,
   Bell,
   Menu,
   Settings,
+  TableProperties,
 } from "lucide-react"
-import { useAuth } from "@workspace/replit-auth-web"
+import { useAuth } from "@workspace/auth-web"
 import { useCurrency, CURRENCIES, type CurrencyCode } from "@/lib/currency-context"
 import { LoginPage } from "@/components/login-page"
 import { NotificationsBell } from "@/components/notifications-bell"
@@ -36,6 +38,8 @@ const navItems = [
   { title: "Inventory", url: "/inventory", icon: Package },
   { title: "Job & Site", url: "/jobs", icon: Building2 },
   { title: "Analytics", url: "/analytics", icon: TrendingUp },
+  { title: "Activity", url: "/activity", icon: History },
+  { title: "Master Ledger", url: "/ledger", icon: TableProperties },
   { title: "Settings", url: "/settings", icon: Settings },
 ]
 
@@ -222,7 +226,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   if (!isAuthenticated) {
-    return <LoginPage onReplitLogin={login} />
+    return <LoginPage />
   }
 
   const displayName = user?.firstName
@@ -322,7 +326,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             { href: "/projects", icon: HardHat, label: "Projects" },
             { href: "/expenses", icon: Receipt, label: "Expenses" },
             { href: "/crew", icon: Users, label: "Crew" },
-            { href: "/analytics", icon: TrendingUp, label: "Analytics" },
+            { href: "/activity", icon: History, label: "Activity" },
           ].map((item) => {
             const active =
               location === item.href ||

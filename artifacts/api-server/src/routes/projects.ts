@@ -10,6 +10,7 @@ import {
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/requireAuth";
 import crypto from "crypto";
+import { logAuditEvent } from "../lib/audit";
 
 const router: IRouter = Router();
 
@@ -94,6 +95,14 @@ router.post("/projects", requireAuth, async (req, res): Promise<void> => {
   if (parsed.data.location !== undefined) values.location = parsed.data.location;
 
   const [project] = await db.insert(projectsTable).values(values as any).returning();
+  await logAuditEvent({
+    userId,
+    action: "created",
+    entityType: "project",
+    entityId: project.id,
+    summary: `Created project "${project.name}"`,
+    metadata: { projectId: project.id, name: project.name },
+  });
   const result = await getProjectWithStats(project.id);
   res.status(201).json(result);
 });
@@ -130,6 +139,14 @@ router.patch("/projects/:id", requireAuth, async (req, res): Promise<void> => {
     .where(and(eq(projectsTable.id, params.data.id), eq(projectsTable.userId, req.user!.id)))
     .returning();
   if (!updated) { res.status(404).json({ error: "Project not found" }); return; }
+  await logAuditEvent({
+    userId: req.user!.id,
+    action: "updated",
+    entityType: "project",
+    entityId: updated.id,
+    summary: `Updated project "${updated.name}"`,
+    metadata: { projectId: updated.id, changes: Object.keys(parsed.data) },
+  });
 
   const result = await getProjectWithStats(updated.id);
   res.json(result);
@@ -145,6 +162,14 @@ router.delete("/projects/:id", requireAuth, async (req, res): Promise<void> => {
     .where(and(eq(projectsTable.id, params.data.id), eq(projectsTable.userId, req.user!.id)))
     .returning();
   if (!deleted) { res.status(404).json({ error: "Project not found" }); return; }
+  await logAuditEvent({
+    userId: req.user!.id,
+    action: "deleted",
+    entityType: "project",
+    entityId: deleted.id,
+    summary: `Deleted project "${deleted.name}"`,
+    metadata: { projectId: deleted.id, name: deleted.name },
+  });
   res.sendStatus(204);
 });
 
@@ -162,6 +187,14 @@ router.post("/projects/:id/share", requireAuth, async (req, res): Promise<void> 
     .set({ shareToken })
     .where(eq(projectsTable.id, id))
     .returning();
+  await logAuditEvent({
+    userId: req.user!.id,
+    action: "updated",
+    entityType: "project",
+    entityId: updated.id,
+    summary: `Enabled public share for "${updated.name}"`,
+    metadata: { projectId: updated.id, shared: true },
+  });
 
   res.json({ shareToken: updated.shareToken });
 });
@@ -174,6 +207,14 @@ router.delete("/projects/:id/share", requireAuth, async (req, res): Promise<void
   await db.update(projectsTable)
     .set({ shareToken: null })
     .where(and(eq(projectsTable.id, id), eq(projectsTable.userId, req.user!.id)));
+  await logAuditEvent({
+    userId: req.user!.id,
+    action: "updated",
+    entityType: "project",
+    entityId: id,
+    summary: "Disabled public project share link",
+    metadata: { projectId: id, shared: false },
+  });
 
   res.sendStatus(204);
 });

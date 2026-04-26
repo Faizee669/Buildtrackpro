@@ -1,12 +1,34 @@
 import { Router, type IRouter } from "express";
-import { db, inventoryTable, insertInventorySchema } from "@workspace/db";
+import { db, inventoryTable, projectsTable, insertInventorySchema } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
+import { logAuditEvent } from "../lib/audit";
 
-const CreateInventoryItemBody = insertInventorySchema;
-const UpdateInventoryItemBody = insertInventorySchema.partial();
+import { z } from "zod/v4";
+
+const CreateInventoryItemBody = insertInventorySchema.extend({
+  quantity: z.coerce.string().optional(),
+  costPerUnit: z.coerce.string().optional(),
+  reorderLevel: z.coerce.string().optional(),
+});
+const UpdateInventoryItemBody = insertInventorySchema.partial().extend({
+  quantity: z.coerce.string().optional(),
+  costPerUnit: z.coerce.string().optional(),
+  reorderLevel: z.coerce.string().optional(),
+});
 
 const router: IRouter = Router();
+
+async function projectBelongsToUser(projectId: number | null | undefined, userId: string) {
+  if (projectId == null) return true;
+  const [project] = await db
+    .select({ id: projectsTable.id })
+    .from(projectsTable)
+    .where(and(eq(projectsTable.id, projectId), eq(projectsTable.userId, userId)))
+    .limit(1);
+
+  return Boolean(project);
+}
 
 // GET /inventory?projectId=
 router.get("/inventory", requireAuth, async (req, res): Promise<void> => {
@@ -34,6 +56,10 @@ router.get("/inventory", requireAuth, async (req, res): Promise<void> => {
 router.post("/inventory", requireAuth, async (req, res): Promise<void> => {
   const parsed = CreateInventoryItemBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  if (!(await projectBelongsToUser(parsed.data.projectId, req.user!.id))) {
+    res.status(404).json({ error: "Project not found" });
+    return;
+  }
 
   const [created] = await db.insert(inventoryTable).values({
     ...parsed.data,
@@ -42,6 +68,14 @@ router.post("/inventory", requireAuth, async (req, res): Promise<void> => {
     costPerUnit: String(parsed.data.costPerUnit ?? 0),
     reorderLevel: String(parsed.data.reorderLevel ?? 0),
   }).returning();
+  await logAuditEvent({
+    userId: req.user!.id,
+    action: "created",
+    entityType: "inventory",
+    entityId: created.id,
+    summary: `Added material "${created.name}"`,
+    metadata: { inventoryId: created.id, projectId: created.projectId, unit: created.unit },
+  });
 
   const q = parseFloat(created.quantity);
   const c = parseFloat(created.costPerUnit);
@@ -60,6 +94,10 @@ router.patch("/inventory/:id", requireAuth, async (req, res): Promise<void> => {
 
   const parsed = UpdateInventoryItemBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  if (!(await projectBelongsToUser(parsed.data.projectId, req.user!.id))) {
+    res.status(404).json({ error: "Project not found" });
+    return;
+  }
 
   const updates: Record<string, unknown> = { ...parsed.data };
   if (parsed.data.quantity !== undefined) updates.quantity = String(parsed.data.quantity);
@@ -71,6 +109,14 @@ router.patch("/inventory/:id", requireAuth, async (req, res): Promise<void> => {
     .where(and(eq(inventoryTable.id, id), eq(inventoryTable.userId, req.user!.id)))
     .returning();
   if (!updated) { res.status(404).json({ error: "Inventory item not found" }); return; }
+  await logAuditEvent({
+    userId: req.user!.id,
+    action: "updated",
+    entityType: "inventory",
+    entityId: updated.id,
+    summary: `Updated material "${updated.name}"`,
+    metadata: { inventoryId: updated.id, changes: Object.keys(updates) },
+  });
 
   const q = parseFloat(updated.quantity);
   const c = parseFloat(updated.costPerUnit);
@@ -87,6 +133,14 @@ router.delete("/inventory/:id", requireAuth, async (req, res): Promise<void> => 
     .where(and(eq(inventoryTable.id, id), eq(inventoryTable.userId, req.user!.id)))
     .returning();
   if (!deleted) { res.status(404).json({ error: "Inventory item not found" }); return; }
+  await logAuditEvent({
+    userId: req.user!.id,
+    action: "deleted",
+    entityType: "inventory",
+    entityId: deleted.id,
+    summary: `Deleted material "${deleted.name}"`,
+    metadata: { inventoryId: deleted.id },
+  });
 
   res.sendStatus(204);
 });

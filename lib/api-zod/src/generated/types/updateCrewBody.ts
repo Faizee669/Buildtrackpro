@@ -9,7 +9,8 @@
 export interface UpdateCrewBody {
   name?: string;
   role?: string;
-  dailyRate?: number;
+  rate?: number;
+  rateType?: string;
   /** @nullable */
   phone?: string | null;
   /** @nullable */
