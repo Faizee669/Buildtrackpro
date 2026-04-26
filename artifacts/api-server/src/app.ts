@@ -6,11 +6,13 @@ import router from "./routes";
 
 const app: Express = express();
 
-const allowedOrigins = process.env.FRONTEND_URL
-  ? [process.env.FRONTEND_URL, "http://localhost:5173"]
-  : true; // allow all in development
-
-app.use(cors({ credentials: true, origin: allowedOrigins }));
+// Allow any origin dynamically to avoid strict URL mismatch issues (Vercel domains can vary)
+app.use(cors({ 
+  credentials: true, 
+  origin: function (origin, callback) {
+    callback(null, true);
+  }
+}));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

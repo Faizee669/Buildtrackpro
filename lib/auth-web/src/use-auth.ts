@@ -19,7 +19,8 @@ export function useAuth(): AuthState {
   const { data: user, isLoading } = useQuery({
     queryKey: ["authUser"],
     queryFn: async () => {
-      const res = await fetch("/api/auth/user", { credentials: "include" });
+      const apiBase = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_BASE_URL) || "";
+      const res = await fetch(`${apiBase}/api/auth/user`, { credentials: "include" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json() as { user: AuthUser | null };
       return data.user ?? null;
@@ -38,7 +39,8 @@ export function useAuth(): AuthState {
   const logout = useCallback(() => {
     // Immediately clear local cache so the UI updates without waiting for network
     queryClient.setQueryData(["authUser"], null);
-    window.location.href = "/api/logout";
+    const apiBase = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_BASE_URL) || "";
+    window.location.href = `${apiBase}/api/logout`;
   }, [queryClient]);
 
   return {
