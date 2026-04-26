@@ -57,7 +57,16 @@ function Router() {
 
 function App() {
   return (
-    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
+    <PersistQueryClientProvider 
+      client={queryClient} 
+      persistOptions={{ 
+        persister,
+        // Never persist auth state — stale null in IDB causes flash-to-login on reload
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query) => query.queryKey[0] !== "authUser",
+        },
+      }}
+    >
       <CurrencyProvider>
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
