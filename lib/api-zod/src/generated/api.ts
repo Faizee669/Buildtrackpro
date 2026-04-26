@@ -306,7 +306,8 @@ export const DeleteExpenseParams = zod.object({
  * @summary Upload a receipt image
  */
 export const UploadReceiptBody = zod.object({
-  file: zod.instanceof(File).optional(),
+  // zod.instanceof(File) crashes Node.js — File is browser-only; validation handled by multer
+  file: zod.any().optional(),
 });
 
 export const UploadReceiptResponse = zod.object({
