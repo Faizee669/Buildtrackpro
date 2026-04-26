@@ -64,6 +64,7 @@ function App() {
         // Never persist auth state — stale null in IDB causes flash-to-login on reload
         dehydrateOptions: {
           shouldDehydrateQuery: (query) => query.queryKey[0] !== "authUser",
+          shouldDehydrateMutation: (mutation) => !!mutation.state.variables,
         },
       }}
     >

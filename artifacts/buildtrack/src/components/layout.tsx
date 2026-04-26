@@ -29,6 +29,24 @@ import { useAuth } from "@workspace/auth-web"
 import { useCurrency, CURRENCIES, type CurrencyCode } from "@/lib/currency-context"
 import { LoginPage } from "@/components/login-page"
 import { NotificationsBell } from "@/components/notifications-bell"
+import { useOnlineStatus } from "@/hooks/use-online-status"
+import { Wifi, WifiOff } from "lucide-react"
+
+function NetworkStatus() {
+  const isOnline = useOnlineStatus()
+  return (
+    <div 
+      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-500 ${
+        isOnline 
+          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" 
+          : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 animate-pulse"
+      }`}
+    >
+      {isOnline ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+      <span className="hidden xs:inline">{isOnline ? "Online" : "Working Offline"}</span>
+    </div>
+  )
+}
 
 const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -269,6 +287,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
+            <NetworkStatus />
             <div className="hidden sm:block">
               <NotificationsBell />
             </div>

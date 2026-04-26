@@ -88,6 +88,20 @@ export default function ExpenseFormPage() {
       },
       onError: (err: any) => {
         addAnotherRef.current = false;
+        const isOffline = !navigator.onLine;
+        if (isOffline) {
+          toast({ 
+            title: "Saved offline!", 
+            description: "Your expense is stored locally and will sync once you are back online.",
+            variant: "default" 
+          });
+          if (addAnotherRef.current) {
+            resetForm();
+          } else {
+            setLocation("/expenses");
+          }
+          return;
+        }
         const msg = err?.data?.error || err?.message || "Unknown error";
         toast({ title: "Failed to log expense", description: msg, variant: "destructive" });
       }
