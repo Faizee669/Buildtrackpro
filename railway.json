@@ -1,16 +1,13 @@
 {
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS",
-    "watchPatterns": [
-      "artifacts/api-server/**",
-      "lib/**"
-    ]
+    "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "cd artifacts/api-server && pnpm run dev",
+    "startCommand": "node /app/artifacts/api-server/dist/index.cjs",
     "healthcheckPath": "/api/health",
+    "healthcheckTimeout": 60,
     "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10
+    "restartPolicyMaxRetries": 3
   }
 }
