@@ -63,27 +63,40 @@ The database is designed around strict relational integrity to eliminate the red
 
 ```mermaid
 erDiagram
-    USER ||--o{ PROJECT : "manages"
+    USER ||--o{ PROJECT : "owns"
     PROJECT ||--o{ PHASE : "contains"
-    PHASE ||--o{ EXPENSE : "categorizes"
     PROJECT ||--o{ EXPENSE : "accumulates"
+    PHASE ||--o{ EXPENSE : "categorizes"
+    VENDOR ||--o{ EXPENSE : "supplies"
 
     USER {
-        int id
+        string id PK
         string email
+        timestamp created_at
     }
     PROJECT {
-        int id
+        int id PK
+        string user_id FK
         string name
         decimal budget
+        timestamp created_at
     }
     PHASE {
-        int id
+        int id PK
+        int project_id FK
         string name
+        timestamp created_at
     }
     EXPENSE {
-        int id
+        int id PK
+        int project_id FK
+        int phase_id FK
+        string vendor FK
         decimal amount
+        timestamp created_at
+    }
+    VENDOR {
+        string name PK
         string category
     }
 ```
