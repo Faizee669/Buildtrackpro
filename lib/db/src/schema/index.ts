@@ -6,3 +6,4 @@ export * from "./crew";
 export * from "./inventory";
 export * from "./notifications";
 export * from "./auditLogs";
+export * from "./vendors";

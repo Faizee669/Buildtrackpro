@@ -3,6 +3,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { projectsTable } from "./projects";
 import { phasesTable } from "./phases";
+import { vendorsTable } from "./vendors";
 
 export const expensesTable = pgTable("expenses", {
   id: serial("id").primaryKey(),
@@ -10,7 +11,7 @@ export const expensesTable = pgTable("expenses", {
   phaseId: integer("phase_id").references(() => phasesTable.id, { onDelete: "set null" }),
   category: text("category").notNull(),
   amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
-  vendor: text("vendor"),
+  vendor: text("vendor").references(() => vendorsTable.name, { onDelete: "set null" }),
   crew: text("crew"),
   equipment: text("equipment"),
   date: date("date").notNull(),
