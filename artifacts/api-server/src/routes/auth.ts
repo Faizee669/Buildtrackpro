@@ -160,7 +160,8 @@ router.get("/logout", async (req: Request, res: Response) => {
   const sid = getSessionId(req);
   await clearSession(res, sid);
 
-  res.redirect("/");
+  const frontendUrl = process.env.FRONTEND_URL || "/";
+  res.redirect(frontendUrl);
 });
 
 

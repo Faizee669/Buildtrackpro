@@ -41,7 +41,8 @@ const STATUS_LABEL = { active: "Active", completed: "Completed", on_hold: "On Ho
 const projectSchema = z.object({
   name: z.string().min(2, "Name is required"),
   description: z.string().optional().nullable(),
-  budget: z.coerce.number().min(1, "Budget must be greater than 0"),
+  budget: z.preprocess((val) => (val === "" ? 0 : val), z.coerce.number().min(1, "Budget must be greater than 0")),
+  estimatedRevenue: z.preprocess((val) => (val === "" ? 0 : val), z.coerce.number().min(0).default(0)),
   startDate: z.string().min(1, "Start date is required"),
   status: z.enum(["active", "completed", "on_hold"]),
 })

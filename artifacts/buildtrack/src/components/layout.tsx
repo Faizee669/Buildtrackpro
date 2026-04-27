@@ -306,32 +306,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Horizontal nav tabs */}
-        <nav className="hidden md:flex items-center gap-1 px-4 sm:px-6 lg:px-8 border-b border-card-border bg-card/60 backdrop-blur-md sticky top-16 z-20 overflow-x-auto">
-          {navItems.map((item) => {
-            const active =
-              location === item.url ||
-              (item.url !== "/dashboard" && location.startsWith(item.url))
-            return (
-              <Link
-                key={item.title}
-                href={item.url}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                  active
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30"
-                }`}
-              >
-                <item.icon className="w-4 h-4" />
-                <span>{item.title}</span>
-              </Link>
-            )
-          })}
-          <div className="ml-auto hidden lg:flex items-center text-xs text-muted-foreground font-medium">
-            {currentNav?.title ?? "Overview"}
-          </div>
-        </nav>
-
         <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 md:pb-8 overflow-y-auto w-full">
           <div className="max-w-7xl mx-auto w-full">{children}</div>
         </main>

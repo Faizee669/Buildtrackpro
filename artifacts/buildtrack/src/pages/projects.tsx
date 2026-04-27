@@ -26,8 +26,8 @@ const STATUS_COLORS = {
 const formSchema = z.object({
   name: z.string().min(2, "Name is required"),
   description: z.string().optional(),
-  budget: z.coerce.number().min(1, "Budget must be greater than 0"),
-  estimatedRevenue: z.coerce.number().min(0).default(0),
+  budget: z.preprocess((val) => (val === "" ? 0 : val), z.coerce.number().min(1, "Budget must be greater than 0")),
+  estimatedRevenue: z.preprocess((val) => (val === "" ? 0 : val), z.coerce.number().min(0).default(0)),
   startDate: z.string().min(1, "Start date is required"),
   status: z.enum(["active", "completed", "on_hold"])
 });
@@ -58,8 +58,8 @@ export default function Projects() {
     defaultValues: {
       name: "",
       description: "",
-      budget: 0,
-      estimatedRevenue: 0,
+      budget: undefined,
+      estimatedRevenue: undefined,
       startDate: new Date().toISOString().split('T')[0],
       status: "active"
     }
