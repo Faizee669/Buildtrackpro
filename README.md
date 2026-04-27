@@ -1,228 +1,90 @@
-# 🏗️ BuildTrack Pro+
+# 🏗️ BuildTrack Pro+ 
 
-### Data Architecture & Predictive Analytics Platform for Construction
+> **A Professional, Offline-First Construction Management Platform.**
 
-> **An edge-to-cloud, AI-powered data platform designed to replace fragmented Excel workflows with a centralized, reliable, and intelligent analytics system.**
-
----
-
-## 📌 Overview
-
-BuildTrack Pro+ addresses a core problem in the construction industry: **poor data integrity caused by disconnected spreadsheets**.
-
-This platform replaces manual, error-prone workflows with a **structured PostgreSQL-backed system**, enabling:
-
-* Real-time financial visibility
-* Predictive cost analysis
-* Reliable, relational data modeling
-
-The result: **better decisions, fewer budget overruns, and zero spreadsheet chaos.**
+BuildTrack Pro+ is a comprehensive, production-ready application designed to streamline construction project management, expense tracking, and material inventory. Built for the field, it ensures 100% uptime by allowing contractors to log critical data even without an internet connection.
 
 ---
 
-## 🚀 Core Features
+## ✨ Key Features
 
-### 🔄 Edge-to-Cloud Data Pipeline
+### 🚀 Performance & Connectivity
+*   📶 **Offline-First Engineering**: Log expenses and updates at remote job sites with zero signal. Data is securely queued locally and automatically syncs to the cloud when internet returns.
+*   ⚡ **Progressive Web App (PWA)**: Installable on Android, iOS, and Desktop. Feels like a native app with fast loading and home screen access.
+*   📡 **Live Network Status**: Real-time indicator shows whether you are working Online or in Local-Sync mode.
 
-* Offline-first architecture for remote job sites
-* Local data persistence using IndexedDB
-* Background sync queue ensures **zero data loss**
-* Automatic reconciliation once connectivity is restored
+### 💰 Financial & Project Management
+*   📊 **Intelligent Dashboard**: Real-time project health metrics, budget utilization, and weekly spending trends.
+*   🧾 **AI-Powered OCR Scanning**: Take a photo of a receipt, and the app automatically extracts the **Amount**, **Vendor**, and **Date** using OCR.
+*   📈 **Project Analytics**: Detailed breakdown of Labor vs. Material costs, Profit Margins, and daily burn rates.
+*   📂 **Multi-Phase Tracking**: Break large projects into Foundation, Framing, Electrical, etc., for granular cost control.
 
-### 📈 Predictive Cost Analytics (AI)
-
-* LLM-powered analysis of historical transaction data
-* Detects anomalies and forecasts budget overruns
-* Vendor-agnostic AI routing via OpenRouter
-* Structured JSON outputs for seamless UI integration
-
-### 🛡️ Data Integrity & Governance
-
-* Strict schema enforcement using Drizzle ORM
-* Runtime validation with Zod
-* Enforced relational constraints across:
-
-  * Projects
-  * Phases
-  * Vendors
-* Guarantees **high-quality, analytics-ready data**
-
-### 📊 Interactive Dashboards
-
-* Real-time aggregation of financial metrics
-* Insights into:
-
-  * Vendor spending
-  * Category distribution
-  * Phase-level budgets
-* Built with responsive, modern UI components
+### 🛠️ Logistics & Personnel
+*   👷 **Crew Management**: Track workers, team assignments, and labor costs.
+*   📦 **Inventory System**: Manage material stocks and equipment tracking across multiple sites.
+*   📑 **Master Ledger**: A centralized, searchable database of every transaction ever made.
 
 ---
 
-## 🏗️ Architecture & Tech Stack
+## 🛠️ Tech Stack
 
-### **Data Layer**
+### Frontend
+- **React 18** with **Vite** (TypeScript)
+- **Tailwind CSS** + **shadcn/ui** for a premium, high-end design.
+- **TanStack Query (React Query)** for robust data fetching and state management.
+- **IndexedDB** for secure local storage and offline persistence.
+- **Wouter** for lightweight, performant routing.
 
-* PostgreSQL (Neon serverless)
-* Drizzle ORM (type-safe schema management)
-* Zod + OpenAPI (validation & contracts)
-
-### **Data Pipeline**
-
-* Node.js + Express (REST API)
-* IndexedDB (offline storage)
-* React Query (state synchronization)
-
-### **Analytics & UI**
-
-* OpenRouter (LLM routing: Llama 3, Gemini, etc.)
-* Recharts (data visualization)
-* React 18 + Tailwind + shadcn/ui
+### Backend & Database
+- **Node.js** + **Express.js** (TypeScript)
+- **Drizzle ORM** for high-performance, type-safe database queries.
+- **PostgreSQL** (Hosted on Neon for serverless scalability).
+- **Zod** for end-to-end schema validation.
+- **Bcrypt** for secure password hashing.
 
 ---
 
-## 🧠 Engineering Highlights
+## 🚀 Getting Started
 
-### 1. Eliminating the "Excel Silo"
+### Local Development (Quick Start)
+1.  **Clone the Repository**:
+    ```bash
+    git clone https://github.com/Faizee669/Buildtrackpro.git
+    cd Buildtrackpro
+    ```
+2.  **Environment Setup**:
+    Create a `.env` file in the root with your credentials (see `.env.example`).
+3.  **One-Click Start (Windows)**:
+    Simply run the included `start-app.bat` file. It will automatically install dependencies and start both the Backend and Frontend servers for you.
 
-Traditional workflows rely on scattered spreadsheets with no integrity.
-
-BuildTrack Pro+ introduces:
-
-* A **normalized relational schema**
-* Enforced entity relationships
-* A **single source of truth** for all financial data
-
-➡️ Result: Reliable, audit-ready analytics.
-
----
-
-### 2. Offline-First Data Synchronization
-
-Construction environments often lack stable internet.
-
-Solution:
-
-* Local-first writes using IndexedDB
-* Background sync queue with retry logic
-* Conflict-aware reconciliation system
-
-➡️ Result: **No lost data, even in zero-connectivity environments**
+### Manual Setup
+1.  Install dependencies: `pnpm install`
+2.  Start Backend: `cd artifacts/api-server && pnpm dev`
+3.  Start Frontend: `cd artifacts/buildtrack && pnpm dev`
 
 ---
 
-### 3. Vendor-Agnostic AI Pipeline
+## 🌐 Deployment Architecture
 
-Instead of locking into a single AI provider:
-
-* Requests are dynamically routed via OpenRouter
-* Supports multiple models (cost vs performance optimization)
-* Built-in fallback handling for reliability
-
-➡️ Result: **Flexible, resilient, and cost-efficient AI processing**
+The application is optimized for a decoupled production environment:
+- **Frontend**: Deployed on **Vercel** with SPA routing support.
+- **Backend**: Deployed on **Railway** with workspace-aware build scripts.
+- **Auth Strategy**: Dual-Auth system using both **Cross-Domain Cookies** and **Token Fallbacks** (localStorage) to bypass aggressive browser cookie blocking.
 
 ---
 
-## ⚙️ Getting Started
-
-### Prerequisites
-
-* Node.js (v18+)
-* `pnpm`
-* PostgreSQL (local or Neon)
+## 🔧 Maintenance & Scripts
+- `commit.js`: Utility script to quickly stage, commit, and push changes to GitHub.
+- `railway.json`: Production build configuration for the Railway API server.
+- `vercel.json`: Routing and rewrite rules for the Vercel frontend.
 
 ---
 
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/Faizee669/Buildtrackpro
-cd buildtrack-pro
-pnpm install
-```
+## 🔒 Security
+- Secure session management with `SameSite: None` and `Secure` flags.
+- Fallback Token-based authentication for cross-domain reliability.
+- All API endpoints protected by authentication middleware.
 
 ---
 
-### 2. Environment Setup
-
-Create a `.env` file in `artifacts/api-server/`:
-
-```env
-DATABASE_URL=postgresql://user:password@localhost:5432/buildtrack
-OPENROUTER_API_KEY=your_api_key
-```
-
----
-
-### 3. Initialize Database
-
-```bash
-pnpm --filter @workspace/db run push
-```
-
----
-
-### 4. Run the App
-
-```bash
-pnpm run dev
-```
-
----
-
-## 📱 Android Build (APK)
-
-```bash
-cd artifacts/buildtrack
-pnpm run build
-npx cap sync android
-npx cap open android
-```
-
----
-
-## 🌐 Deployment
-
-* **Frontend:** Vercel
-* **Backend:** Railway
-* **Database:** Neon (Serverless PostgreSQL)
-
----
-
-## 💡 Why This Project Matters
-
-BuildTrack Pro+ is more than a CRUD app — it demonstrates:
-
-* Real-world **data engineering principles**
-* Offline-first system design
-* AI integration with production constraints
-* Strong emphasis on **data integrity and reliability**
-
----
-
-## 📎 Source
-
-Original version: 
-
----
-
-## 🔮 Future Improvements
-
-* Role-based access control (RBAC)
-* Advanced forecasting models (time-series)
-* Multi-project portfolio analytics
-* Mobile-first UX enhancements
-
----
-
-## 🤝 Contributing
-
-Contributions, ideas, and feedback are welcome. Feel free to open an issue or submit a PR.
-
----
-
-## 📬 Contact
-
-If you're interested in the architecture or want to collaborate, reach out!
-
----
+**Developed for the Construction Industry by Faizan.**
