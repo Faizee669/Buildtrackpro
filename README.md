@@ -136,7 +136,7 @@ Instead of locking into a single AI provider:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/buildtrack-pro.git](https://github.com/Faizee669/Buildtrackpro
+git clone https://github.com/Faizee669/Buildtrackpro
 cd buildtrack-pro
 pnpm install
 ```
