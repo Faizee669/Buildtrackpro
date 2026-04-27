@@ -26,6 +26,63 @@ BuildTrack Pro+ is a comprehensive, production-ready application designed to str
 
 ---
 
+## 🧩 Data Model Overview
+
+The database is designed around strict relational integrity to ensure financial accuracy across complex job sites.
+
+```mermaid
+erDiagram
+    USER ||--o{ PROJECT : "manages"
+    PROJECT ||--o{ PHASE : "contains"
+    PHASE ||--o{ EXPENSE : "categorizes"
+    PROJECT ||--o{ EXPENSE : "accumulates"
+
+    USER {
+        int id
+        string email
+    }
+    PROJECT {
+        int id
+        string name
+        decimal budget
+    }
+    PHASE {
+        int id
+        string name
+    }
+    EXPENSE {
+        int id
+        decimal amount
+        string category
+    }
+```
+
+### Core Hierarchy
+- **Project → Phase → Expense**: Every transaction is tracked within a specific project and optionally assigned to a sub-phase (like Foundation or Plumbing).
+- **Strict References**: Every expense must reference a valid Project and a Vendor to prevent "orphaned" financial records.
+
+### Key Design Decisions
+- **Enforced Foreign Keys**: Prevents orphaned financial records and ensures data consistency even when working offline.
+- **Normalized Schema**: Eliminates the duplication and "formula rot" common in Excel-based construction workflows.
+- **Optimized Indexing**: Frequently queried fields (like `project_id` and `vendor`) are indexed for high-performance reporting.
+
+### Example Schema Definition
+```sql
+-- Represented via Drizzle ORM
+CREATE TABLE expenses (
+  id SERIAL PRIMARY KEY,
+  project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  phase_id INTEGER REFERENCES phases(id) ON DELETE SET NULL,
+  amount NUMERIC(12, 2) NOT NULL,
+  category TEXT NOT NULL,
+  vendor TEXT,
+  date DATE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+---
+
 ## 🛠️ Tech Stack
 
 ### Frontend
