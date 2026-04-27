@@ -1,34 +1,26 @@
 # 🏗️ BuildTrack Pro+ 
 
-> **A Professional, Offline-First Construction Management Platform.**
+> **A Professional, Offline-First Construction Data Platform.**
 
-BuildTrack Pro+ is a comprehensive, production-ready application designed to streamline construction project management, expense tracking, and material inventory. Built for the field, it ensures 100% uptime by allowing contractors to log critical data even without an internet connection.
+BuildTrack Pro+ is engineered as a high-integrity **distributed data ingestion and analytics platform** designed for the construction industry. It solves the "Excel Problem" by migrating fragmented, unstructured workflows into a strictly normalized relational system that remains operational in zero-connectivity environments.
 
 ---
 
-## ✨ Key Features
+## 🔄 Data Pipeline Architecture
 
-### 🚀 Performance & Connectivity
-*   📶 **Offline-First Engineering**: Log expenses and updates at remote job sites with zero signal. Data is securely queued locally and automatically syncs to the cloud when internet returns.
-*   ⚡ **Progressive Web App (PWA)**: Installable on Android, iOS, and Desktop. Feels like a native app with fast loading and home screen access.
-*   📡 **Live Network Status**: Real-time indicator shows whether you are working Online or in Local-Sync mode.
+The system is designed to handle high-fidelity financial data from the edge to the cloud:
 
-### 💰 Financial & Project Management
-*   📊 **Intelligent Dashboard**: Real-time project health metrics, budget utilization, and weekly spending trends.
-*   🧾 **AI-Powered OCR Scanning**: Take a photo of a receipt, and the app automatically extracts the **Amount**, **Vendor**, and **Date** using OCR.
-*   📈 **Project Analytics**: Detailed breakdown of Labor vs. Material costs, Profit Margins, and daily burn rates.
-*   📂 **Multi-Phase Tracking**: Break large projects into Foundation, Framing, Electrical, etc., for granular cost control.
-
-### 🛠️ Logistics & Personnel
-*   👷 **Crew Management**: Track workers, team assignments, and labor costs.
-*   📦 **Inventory System**: Manage material stocks and equipment tracking across multiple sites.
-*   📑 **Master Ledger**: A centralized, searchable database of every transaction ever made.
+1.  **Ingestion (Edge)**: Data captured offline via mobile devices (IndexedDB) and stored in a resilient local queue.
+2.  **Transport**: Reliable distributed data ingestion using Service Workers to batch sync API requests when connectivity is restored.
+3.  **Processing**: Multi-stage validation using Zod schemas to ensure type-safe contracts from Client → API → Database.
+4.  **Storage**: Fully normalized PostgreSQL (Neon) storage with enforced relational constraints.
+5.  **Consumption**: Real-time BI dashboards and an AI-powered analytics layer for anomaly detection.
 
 ---
 
 ## 🧩 Data Model Overview
 
-The database is designed around strict relational integrity to ensure financial accuracy across complex job sites.
+The database is designed around strict relational integrity to eliminate the redundancy and "formula rot" common in spreadsheet workflows.
 
 ```mermaid
 erDiagram
@@ -57,18 +49,14 @@ erDiagram
     }
 ```
 
-### Core Hierarchy
-- **Project → Phase → Expense**: Every transaction is tracked within a specific project and optionally assigned to a sub-phase (like Foundation or Plumbing).
-- **Strict References**: Every expense must reference a valid Project and a Vendor to prevent "orphaned" financial records.
+### Data Modeling Decisions
+- **Normalized Schema**: Designed to eliminate data redundancy and ensure a single source of truth for financial reporting.
+- **Strict Foreign Key Hierarchy**: **Project → Phase → Expense**. Prevents orphaned records and ensures 100% relational integrity.
+- **Analytical Query Optimization**: Frequently queried paths (vendor spend, phase budgets, project totals) are indexed for low-latency BI reporting.
+- **Edge Resilience**: Foreign key consistency is maintained in local IndexedDB stores to ensure offline data remains valid for cloud ingestion.
 
-### Key Design Decisions
-- **Enforced Foreign Keys**: Prevents orphaned financial records and ensures data consistency even when working offline.
-- **Normalized Schema**: Eliminates the duplication and "formula rot" common in Excel-based construction workflows.
-- **Optimized Indexing**: Frequently queried fields (like `project_id` and `vendor`) are indexed for high-performance reporting.
-
-### Example Schema Definition
+### Example Schema Definition (Drizzle ORM)
 ```sql
--- Represented via Drizzle ORM
 CREATE TABLE expenses (
   id SERIAL PRIMARY KEY,
   project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
@@ -83,21 +71,34 @@ CREATE TABLE expenses (
 
 ---
 
-## 🛠️ Tech Stack
+## 🤖 AI as a Data Processing Layer
 
-### Frontend
-- **React 18** with **Vite** (TypeScript)
-- **Tailwind CSS** + **shadcn/ui** for a premium, high-end design.
-- **TanStack Query (React Query)** for robust data fetching and state management.
-- **IndexedDB** for secure local storage and offline persistence.
-- **Wouter** for lightweight, performant routing.
+Instead of a static feature, BuildTrack Pro+ implements an **unstructured data processing pipeline** using LLMs:
 
-### Backend & Database
-- **Node.js** + **Express.js** (TypeScript)
-- **Drizzle ORM** for high-performance, type-safe database queries.
-- **PostgreSQL** (Hosted on Neon for serverless scalability).
-- **Zod** for end-to-end schema validation.
-- **Bcrypt** for secure password hashing.
+- **Data Extraction**: Converts unstructured physical receipt images into structured JSON payloads.
+- **Normalization**: Maps diverse vendor descriptions and dates into standardized relational formats.
+- **Downstream Analytics**: Feeds normalized data into BI dashboards for real-time cost anomaly detection.
+
+---
+
+## 🛠️ Data Engineering Focus
+
+BuildTrack Pro+ is built on core data engineering principles to ensure reliability and scalability:
+
+- **Unstructured Data → Structured Data Migration**: Transforms messy field notes and receipt photos into a rigorous SQL format.
+- **Reliable Distributed Data Ingestion**: Handles eventual consistency and data synchronization from edge devices.
+- **Data Reliability Layer**: Implements retry mechanisms for failed syncs and a robust conflict resolution strategy for multi-device environments.
+- **Type-Safe Data Contracts**: Ensures data remains valid at every hop of the pipeline (Zod + TypeScript).
+
+---
+
+## 🧰 Data Engineering Stack Mapping
+
+- **Ingestion:** IndexedDB, Service Workers (Offline Queue)
+- **Processing:** Node.js, Express, Zod (Validation Layer)
+- **Storage:** PostgreSQL (Neon Serverless)
+- **Modeling:** Drizzle ORM (Type-safe Relational Modeling)
+- **Analytics:** Recharts (BI Visualization), LLM OCR Pipeline
 
 ---
 
@@ -110,37 +111,17 @@ CREATE TABLE expenses (
     cd Buildtrackpro
     ```
 2.  **Environment Setup**:
-    Create a `.env` file in the root with your credentials (see `.env.example`).
+    Create a `.env` file in the root with your credentials.
 3.  **One-Click Start (Windows)**:
-    Simply run the included `start-app.bat` file. It will automatically install dependencies and start both the Backend and Frontend servers for you.
-
-### Manual Setup
-1.  Install dependencies: `pnpm install`
-2.  Start Backend: `cd artifacts/api-server && pnpm dev`
-3.  Start Frontend: `cd artifacts/buildtrack && pnpm dev`
+    Run the included `start-app.bat` to automatically install dependencies and start both servers.
 
 ---
 
 ## 🌐 Deployment Architecture
 
-The application is optimized for a decoupled production environment:
-- **Frontend**: Deployed on **Vercel** with SPA routing support.
-- **Backend**: Deployed on **Railway** with workspace-aware build scripts.
-- **Auth Strategy**: Dual-Auth system using both **Cross-Domain Cookies** and **Token Fallbacks** (localStorage) to bypass aggressive browser cookie blocking.
-
----
-
-## 🔧 Maintenance & Scripts
-- `commit.js`: Utility script to quickly stage, commit, and push changes to GitHub.
-- `railway.json`: Production build configuration for the Railway API server.
-- `vercel.json`: Routing and rewrite rules for the Vercel frontend.
-
----
-
-## 🔒 Security
-- Secure session management with `SameSite: None` and `Secure` flags.
-- Fallback Token-based authentication for cross-domain reliability.
-- All API endpoints protected by authentication middleware.
+- **Frontend**: Hosted on **Vercel** with SPA routing rewrites.
+- **Backend API**: Hosted on **Railway** with workspace-aware build scripts.
+- **Security**: Dual-Auth strategy using cross-domain cookies and fallback `localStorage` tokens.
 
 ---
 
