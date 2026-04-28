@@ -101,15 +101,15 @@ export default function ActivityLogPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-primary/5 border border-primary/20 rounded-xl p-4">
           <div className="flex flex-col">
             <span className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5"><TrendingUp className="w-4 h-4" /> Total System Cost</span>
-            <span className="text-2xl font-bold text-foreground mt-1">{fmt(stats.totalSpent)}</span>
+            <span className="text-2xl font-bold text-foreground mt-1">{fmt(stats.totalSpent ?? 0)}</span>
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5"><Users className="w-4 h-4" /> Labor & Crew</span>
-            <span className="text-xl font-bold text-foreground mt-1">{fmt(stats.laborSpent)}</span>
+            <span className="text-xl font-bold text-foreground mt-1">{fmt(stats.laborSpent ?? 0)}</span>
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5"><Package className="w-4 h-4" /> Materials & Other</span>
-            <span className="text-xl font-bold text-foreground mt-1">{fmt(stats.materialSpent)}</span>
+            <span className="text-xl font-bold text-foreground mt-1">{fmt(stats.materialSpent ?? 0)}</span>
           </div>
         </div>
       )}
