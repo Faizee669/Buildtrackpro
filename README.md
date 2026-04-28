@@ -6,6 +6,18 @@ BuildTrack Pro+ is engineered as a high-integrity **distributed data ingestion a
 
 ---
 
+## 🧨 Data Problem
+
+Construction workflows rely on fragmented Excel files, leading to:
+
+- No schema enforcement → inconsistent data
+- Broken relationships → unreliable reporting
+- Manual aggregation → delayed insights
+
+➡️ Result: low-trust financial data
+
+BuildTrack Pro+ solves this by introducing a **validated, relational data system with enforced integrity**.
+
 ## 🔄 Data Pipeline Architecture
 
 The system is designed to handle high-fidelity financial data from the edge to the cloud:
@@ -25,6 +37,29 @@ graph LR
 ```
 
 ---
+
+## 📜 Data Contracts
+
+Data integrity is enforced across every layer:
+
+- **Client → API**: Validated via Zod schemas
+- **API → Database**: Enforced via Drizzle ORM constraints
+
+Guarantees:
+- No malformed writes
+- Strict type safety
+- Consistent schema across the pipeline
+
+---
+
+## ⚙️ Reliability & Fault Tolerance
+
+- Offline queue prevents data loss in low-connectivity environments
+- Automatic retry mechanism for failed sync operations
+- Conflict resolution using timestamp-based reconciliation
+- Graceful fallback for AI processing failures
+
+➡️ Ensures eventual consistency across distributed clients
 
 ## 🧩 Data Model Overview
 
