@@ -11,10 +11,17 @@ BuildTrack Pro+ is engineered as a high-integrity **distributed data ingestion a
 > **Pro Tip:** Replace the file above with your own recording to showcase the "wow" factor of the UI and offline sync!
 
 ---
-
 ## 🧨 Data Problem
 
-Construction projects suffer from "Excel Rot"—disconnected spreadsheets, broken formulas, and fragmented data. BuildTrack Pro+ provides a centralized, relational system that ensures data integrity from the field to the dashboard.
+Construction workflows rely on fragmented Excel files, leading to:
+
+- No schema enforcement → inconsistent data
+- Broken relationships → unreliable reporting
+- Manual aggregation → delayed insights
+
+➡️ Result: low-trust financial data
+
+BuildTrack Pro+ solves this by introducing a **validated, relational data system with enforced integrity**.
 
 ---
 
@@ -28,60 +35,47 @@ The system is designed to handle high-fidelity financial data from the edge to t
 - **Storage:** Normalized PostgreSQL with enforced relational constraints.
 - **Consumption:** BI dashboards + AI analytics layer.
 
-```mermaid
-graph LR
-    A[Edge: IndexedDB] -->|Service Worker| B[Transport: API Gateway]
-    B --> C[Processing: Zod Validation]
-    C --> D[Storage: PostgreSQL]
-    D --> E[Analytics: BI & AI Layer]
-```
+> A Professional, Offline-First Construction Data Platform.
+> ➡️ Designed for eventual consistency across distributed edge clients
+
+<p align="center">
+  <img src="./screenshots/pipe.png" alt="Data Pipeline" width="900"/>
+</p>
+
 
 ---
+
+## 📜 Data Contracts
+
+Data integrity is enforced across every layer:
+
+- **Client → API**: Validated via Zod schemas
+- **API → Database**: Enforced via Drizzle ORM constraints
+
+Guarantees:
+- No malformed writes
+- Strict type safety
+- Consistent schema across the pipeline
+
+---
+
+## ⚙️ Reliability & Fault Tolerance
+
+- Offline queue prevents data loss in low-connectivity environments
+- Automatic retry mechanism for failed sync operations
+- Conflict resolution using timestamp-based reconciliation
+- Graceful fallback for AI processing failures
+
+➡️ Ensures eventual consistency across distributed clients
 
 ## 🧩 Data Model Overview
 
 The database is designed around strict relational integrity to eliminate the redundancy and "formula rot" common in spreadsheet workflows.
 
-```mermaid
-erDiagram
-    USER ||--o{ PROJECT : "owns"
-    PROJECT ||--o{ PHASE : "contains"
-    PROJECT ||--o{ EXPENSE : "accumulates"
-    PHASE ||--o{ EXPENSE : "categorizes"
-    VENDOR ||--o{ EXPENSE : "supplies"
 
-    USER {
-        string id PK
-        string email
-        timestamp created_at
-    }
-    PROJECT {
-        int id PK
-        string user_id FK
-        string name
-        decimal budget
-        timestamp created_at
-    }
-    PHASE {
-        int id PK
-        int project_id FK
-        string name
-        timestamp created_at
-    }
-    EXPENSE {
-        int id PK
-        int project_id FK
-        int phase_id FK
-        string vendor FK
-        decimal amount
-        timestamp created_at
-    }
-    VENDOR {
-        string name PK
-        string category
-        timestamp created_at
-    }
-```
+<p align="center">
+  <img src="./screenshots/model.png" alt="Data Pipeline" width="900"/>
+</p>
 
 ### Data Modeling Decisions
 - **Normalized Schema**: Designed to eliminate data redundancy and ensure a single source of truth for financial reporting.
@@ -102,6 +96,20 @@ CREATE TABLE expenses (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
+## 🔍 Analytical Query Patterns
+
+The schema is optimized for:
+
+- Vendor spend aggregation  
+- Phase-level budget tracking  
+- Project-wide cost summaries  
+- Time-series expense analysis  
+
+Indexes applied on:
+- project_id  
+- phase_id  
+- created_at  
+
 
 ---
 
@@ -159,6 +167,15 @@ BuildTrack Pro+ is built on core data engineering principles to ensure reliabili
 
 ---
 
-**Built to reflect production-grade data engineering systems, including ingestion, validation, modeling, and analytics.**
+## 💡 Key Takeaway
+
+This project demonstrates a **production-style data platform**, including:
+
+- Distributed data ingestion
+- Strong data contracts and validation
+- Relational modeling for analytics
+- Offline-first reliability with eventual consistency
+
+Designed to reflect real-world data engineering systems.
 
 **Developed for the Construction Industry by Faizan.**
