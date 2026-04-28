@@ -7,7 +7,7 @@ BuildTrack Pro+ is engineered as a high-integrity **distributed data ingestion a
 > A Professional, Offline-First Construction Data Platform.
 
 <p align="center">
-  <img src="./docs/pipeline.png" alt="Data Pipeline" width="900"/>
+  <img src="./screenshots/pipe.png" alt="Data Pipeline" width="900"/>
 </p>
 
 ## 🧨 Data Problem
