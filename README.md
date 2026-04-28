@@ -35,6 +35,7 @@ The system is designed to handle high-fidelity financial data from the edge to t
   <img src="./screenshots/pipe.png" alt="Data Pipeline" width="900"/>
 </p>
 
+
 ```mermaid
 graph LR
     A[Edge: IndexedDB] -->|Service Worker| B[Transport: API Gateway]
@@ -72,46 +73,10 @@ Guarantees:
 
 The database is designed around strict relational integrity to eliminate the redundancy and "formula rot" common in spreadsheet workflows.
 
-```mermaid
-erDiagram
-    USER ||--o{ PROJECT : "owns"
-    PROJECT ||--o{ PHASE : "contains"
-    PROJECT ||--o{ EXPENSE : "accumulates"
-    PHASE ||--o{ EXPENSE : "categorizes"
-    VENDOR ||--o{ EXPENSE : "supplies"
+<p align="center">
+  <img src="./screenshots/model.png" alt="Data Pipeline" width="900"/>
+</p>
 
-    USER {
-        string id PK
-        string email
-        timestamp created_at
-    }
-    PROJECT {
-        int id PK
-        string user_id FK
-        string name
-        decimal budget
-        timestamp created_at
-    }
-    PHASE {
-        int id PK
-        int project_id FK
-        string name
-        timestamp created_at
-    }
-    EXPENSE {
-        int id PK
-        int project_id FK
-        int phase_id FK
-        string vendor FK
-        decimal amount
-        timestamp created_at
-    }
-    VENDOR {
-        string name PK
-        string category
-        timestamp created_at
-    }
-```
 
 ## 🔍 Analytical Query Patterns
 
