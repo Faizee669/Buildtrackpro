@@ -4,6 +4,14 @@
 
 BuildTrack Pro+ is engineered as a high-integrity **distributed data ingestion and analytics platform** designed for the construction industry. It solves the "Excel Problem" by migrating fragmented, unstructured workflows into a strictly normalized relational system that remains operational in zero-connectivity environments.
 
+> A Professional, Offline-First Construction Data Platform.
+
+<p align="center">
+  <img src="./docs/pipeline.png" alt="Data Pipeline" width="900"/>
+</p>
+
+## 🧨 Data Problem
+...
 ---
 
 ## 🧨 Data Problem
