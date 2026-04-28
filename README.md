@@ -14,15 +14,9 @@ BuildTrack Pro+ is engineered as a high-integrity **distributed data ingestion a
 
 ## 🧨 Data Problem
 
-Construction workflows rely on fragmented Excel files, leading to:
+Construction projects suffer from "Excel Rot"—disconnected spreadsheets, broken formulas, and fragmented data. BuildTrack Pro+ provides a centralized, relational system that ensures data integrity from the field to the dashboard.
 
-- No schema enforcement → inconsistent data
-- Broken relationships → unreliable reporting
-- Manual aggregation → delayed insights
-
-➡️ Result: low-trust financial data
-
-BuildTrack Pro+ solves this by introducing a **validated, relational data system with enforced integrity**.
+---
 
 ## 🔄 Data Pipeline Architecture
 
@@ -43,29 +37,6 @@ graph LR
 ```
 
 ---
-
-## 📜 Data Contracts
-
-Data integrity is enforced across every layer:
-
-- **Client → API**: Validated via Zod schemas
-- **API → Database**: Enforced via Drizzle ORM constraints
-
-Guarantees:
-- No malformed writes
-- Strict type safety
-- Consistent schema across the pipeline
-
----
-
-## ⚙️ Reliability & Fault Tolerance
-
-- Offline queue prevents data loss in low-connectivity environments
-- Automatic retry mechanism for failed sync operations
-- Conflict resolution using timestamp-based reconciliation
-- Graceful fallback for AI processing failures
-
-➡️ Ensures eventual consistency across distributed clients
 
 ## 🧩 Data Model Overview
 
@@ -111,22 +82,6 @@ erDiagram
         timestamp created_at
     }
 ```
-
-## 🔍 Analytical Query Patterns
-
-The schema is optimized for:
-
-- Vendor spend aggregation
-- Phase-level budget tracking
-- Project-wide cost summaries
-- Time-series expense analysis
-
-Indexes applied on:
-- project_id
-- phase_id
-- created_at
-
----
 
 ### Data Modeling Decisions
 - **Normalized Schema**: Designed to eliminate data redundancy and ensure a single source of truth for financial reporting.
@@ -203,17 +158,6 @@ BuildTrack Pro+ is built on core data engineering principles to ensure reliabili
 - **Security**: Dual-Auth strategy using cross-domain cookies and fallback `localStorage` tokens.
 
 ---
-
-## 💡 Key Takeaway
-
-This project demonstrates a **production-style data platform**, including:
-
-- Distributed data ingestion
-- Strong data contracts and validation
-- Relational modeling for analytics
-- Offline-first reliability with eventual consistency
-
-Designed to reflect real-world data engineering systems.
 
 **Built to reflect production-grade data engineering systems, including ingestion, validation, modeling, and analytics.**
 
