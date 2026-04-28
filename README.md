@@ -4,15 +4,8 @@
 
 BuildTrack Pro+ is engineered as a high-integrity **distributed data ingestion and analytics platform** designed for the construction industry. It solves the "Excel Problem" by migrating fragmented, unstructured workflows into a strictly normalized relational system that remains operational in zero-connectivity environments.
 
-> A Professional, Offline-First Construction Data Platform.
 
-<p align="center">
-  <img src="./screenshots/pipe.png" alt="Data Pipeline" width="900"/>
-</p>
 
-## 🧨 Data Problem
-...
----
 
 ## 🧨 Data Problem
 
@@ -35,6 +28,12 @@ The system is designed to handle high-fidelity financial data from the edge to t
 - **Processing:** Schema validation via Zod (client → API → DB).
 - **Storage:** Normalized PostgreSQL with enforced relational constraints.
 - **Consumption:** BI dashboards + AI analytics layer.
+
+> A Professional, Offline-First Construction Data Platform.
+
+<p align="center">
+  <img src="./screenshots/pipe.png" alt="Data Pipeline" width="900"/>
+</p>
 
 ```mermaid
 graph LR
