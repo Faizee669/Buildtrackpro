@@ -65,6 +65,24 @@ Guarantees:
 
 ➡️ Ensures eventual consistency across distributed clients
 
+---
+
+## 📜 Audit Logging & Data Traceability
+
+BuildTrack Pro+ implements an **immutable audit logging system** to track all critical data changes:
+
+- Every create, update, and delete operation is recorded
+- Logs are append-only and cannot be modified or deleted
+- Captures historical state for full traceability
+
+### Why this matters
+
+- Ensures **data integrity and accountability**
+- Enables **historical reconstruction of financial activity**
+- Supports **audit/compliance use cases**
+
+➡️ Designed as a tamper-resistant record of all system activity
+
 ## 🧩 Data Model Overview
 
 The database is designed around strict relational integrity to eliminate the redundancy and "formula rot" common in spreadsheet workflows.
