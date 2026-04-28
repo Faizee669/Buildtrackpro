@@ -67,13 +67,32 @@ Guarantees:
 
 ---
 
-## 📜 Audit Logging & Data Traceability
+## 🔍 Immutable Audit Log (Data Traceability)
 
-BuildTrack Pro+ implements an **immutable audit logging system** to track all critical data changes:
+BuildTrack Pro+ implements a **centralized, append-only audit logging system** to track all system activity across entities.
 
-- Every create, update, and delete operation is recorded
-- Logs are append-only and cannot be modified or deleted
-- Captures historical state for full traceability
+### Key Features
+
+- **System-wide event tracking** across:
+  - projects, phases, expenses, crew, inventory, and settings  
+- **Typed audit events** (`created`, `updated`, `deleted`)  
+- **Append-only design** — logs cannot be modified or deleted  
+- **Timestamped records** for full temporal traceability  
+- **Extensible metadata support** for capturing contextual details  
+
+### Reliability & Observability
+
+- Periodic polling enables near real-time activity monitoring  
+- Events are grouped by time (Today / Yesterday / historical) for efficient analysis  
+- Provides a complete historical trail of all system changes  
+
+### Why this matters
+
+- Ensures **data integrity and accountability**  
+- Enables **historical reconstruction of financial activity**  
+- Supports **audit and compliance requirements**  
+
+➡️ Designed as a tamper-resistant, system-wide record of all data mutations
 
 ### Why this matters
 
