@@ -4,11 +4,59 @@
 
 BuildTrack Pro+ is engineered as a high-integrity **distributed data ingestion and analytics platform** designed for the construction industry. It solves the "Excel Problem" by migrating fragmented, unstructured workflows into a strictly normalized relational system that remains operational in zero-connectivity environments.
 
+
+
 ## 📺 App Demo
 
 ![BuildTrack Pro+ Demo](screenshots/demo.gif)
 
 ---
+
+## 🏗️ System Architecture
+
+<p align="center">
+  <img src="./screenshots/Architecture.png" alt="BuildTrack System Architecture" width="1000"/>
+</p>
+
+---
+
+## 🧱 Platform Capabilities
+
+BuildTrack Pro+ is not just a data pipeline — it is a **full operational data platform** for construction management.
+
+### 📥 Data Ingestion
+- Expense logging with offline-first support  
+- OCR-based receipt scanning for unstructured data extraction  
+- Local queueing with sync to backend  
+
+### 🧩 Core Data Modeling
+- Hierarchical structure: Project → Phase → Expense  
+- Workforce (crew) and inventory modeled as first-class entities  
+- Vendor normalization for analytical consistency  
+
+### 📊 Analytics & BI
+- Real-time dashboards with:
+  - spending trends  
+  - category distributions  
+  - project health metrics  
+- Advanced visualizations (time-series, radar, breakdowns)  
+
+### 📚 Query & Reporting Layer
+- Unified master ledger across all entities  
+- Filtering, searching, and CSV export  
+- Project-level analytics and shareable reports  
+
+### 🔍 Audit & Traceability
+- Immutable audit log of all system actions  
+- Full historical tracking of financial activity  
+
+### 🤖 AI Data Processing
+- OCR extraction from receipts  
+- AI-powered insights and anomaly detection  
+
+➡️ Designed as an end-to-end system: ingestion → processing → storage → analytics → reporting
+
+
 ## 🧨 Data Problem
 
 Construction workflows rely on fragmented Excel files, leading to:
