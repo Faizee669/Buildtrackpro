@@ -11,7 +11,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useQueryClient } from "@tanstack/react-query"
-import { getListExpensesQueryKey, getGetDashboardStatsQueryKey } from "@workspace/api-client-react"
+import { getListExpensesQueryKey, getGetDashboardStatsQueryKey, getListPhasesQueryKey } from "@workspace/api-client-react"
 import { useToast } from "@/hooks/use-toast"
 import { UploadCloud, Receipt, Loader2, ArrowLeft, Scan, CheckCircle2 } from "lucide-react"
 import { Link } from "wouter"
@@ -62,7 +62,10 @@ export default function ExpenseFormPage() {
 
   const selectedProjectId = form.watch("projectId");
   const { data: phases } = useListPhases(Number(selectedProjectId) || 0, {
-    query: { enabled: !!selectedProjectId && Number(selectedProjectId) > 0 }
+    query: { 
+      enabled: !!selectedProjectId && Number(selectedProjectId) > 0,
+      queryKey: getListPhasesQueryKey(Number(selectedProjectId) || 0)
+    }
   });
 
   const resetForm = useCallback(() => {
