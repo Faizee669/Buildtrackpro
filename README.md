@@ -106,6 +106,22 @@ erDiagram
     }
 ```
 
+## 🔍 Analytical Query Patterns
+
+The schema is optimized for:
+
+- Vendor spend aggregation
+- Phase-level budget tracking
+- Project-wide cost summaries
+- Time-series expense analysis
+
+Indexes applied on:
+- project_id
+- phase_id
+- created_at
+
+---
+
 ### Data Modeling Decisions
 - **Normalized Schema**: Designed to eliminate data redundancy and ensure a single source of truth for financial reporting.
 - **Strict Relational Hierarchy**: **Project → Phase → Expense**. Enforced foreign keys prevent orphaned records and ensure 100% relational integrity.
@@ -181,6 +197,17 @@ BuildTrack Pro+ is built on core data engineering principles to ensure reliabili
 - **Security**: Dual-Auth strategy using cross-domain cookies and fallback `localStorage` tokens.
 
 ---
+
+## 💡 Key Takeaway
+
+This project demonstrates a **production-style data platform**, including:
+
+- Distributed data ingestion
+- Strong data contracts and validation
+- Relational modeling for analytics
+- Offline-first reliability with eventual consistency
+
+Designed to reflect real-world data engineering systems.
 
 **Built to reflect production-grade data engineering systems, including ingestion, validation, modeling, and analytics.**
 
