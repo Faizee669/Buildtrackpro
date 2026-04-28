@@ -8,8 +8,6 @@ BuildTrack Pro+ is engineered as a high-integrity **distributed data ingestion a
 
 ![BuildTrack Pro+ Demo](screenshots/demo.gif)
 
-> **Pro Tip:** Replace the file above with your own recording to showcase the "wow" factor of the UI and offline sync!
-
 ---
 ## 🧨 Data Problem
 
@@ -27,7 +25,7 @@ BuildTrack Pro+ solves this by introducing a **validated, relational data system
 
 ## 🔄 Data Pipeline Architecture
 
-The system is designed to handle high-fidelity financial data from the edge to the cloud:
+The system implements an end-to-end data pipeline for high-fidelity financial data, from edge ingestion to analytical insights:
 
 - **Ingestion (Edge):** Offline capture via IndexedDB with local queueing.
 - **Transport:** Background sync using Service Workers (batched + retry).
@@ -35,11 +33,10 @@ The system is designed to handle high-fidelity financial data from the edge to t
 - **Storage:** Normalized PostgreSQL with enforced relational constraints.
 - **Consumption:** BI dashboards + AI analytics layer.
 
-> A Professional, Offline-First Construction Data Platform.
 > ➡️ Designed for eventual consistency across distributed edge clients
 
 <p align="center">
-  <img src="./screenshots/pipe.png" alt="Data Pipeline" width="900"/>
+  <img src="./screenshots/pipe.png" alt="Data Model Erd" width="900"/>
 </p>
 
 
