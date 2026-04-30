@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useCreateExpense, useCreateProject, useListProjects, useListPhases } from "@workspace/api-client-react"
-import { getListExpensesQueryKey, getGetDashboardStatsQueryKey, getListProjectsQueryKey } from "@workspace/api-client-react"
+import { getListExpensesQueryKey, getGetDashboardStatsQueryKey, getListProjectsQueryKey, getListPhasesQueryKey } from "@workspace/api-client-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useToast } from "@/hooks/use-toast"
 import { useForm } from "react-hook-form"
@@ -60,7 +60,10 @@ function ExpenseForm({ onSuccess }: { onSuccess: () => void }) {
 
   const selectedProjectId = form.watch("projectId")
   const { data: phases } = useListPhases(Number(selectedProjectId) || 0, {
-    query: { enabled: !!selectedProjectId && Number(selectedProjectId) > 0 }
+    query: { 
+      enabled: !!selectedProjectId && Number(selectedProjectId) > 0,
+      queryKey: getListPhasesQueryKey(Number(selectedProjectId) || 0)
+    }
   })
 
   const mutation = useCreateExpense({

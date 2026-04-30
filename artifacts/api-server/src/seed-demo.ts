@@ -1,5 +1,5 @@
-import { db } from "../../../lib/db/src/index.ts";
-import { usersTable, emailCredentialsTable, projectsTable, phasesTable, expensesTable, vendorsTable } from "../../../lib/db/src/schema/index.ts";
+import { db } from "../../../lib/db/src/index";
+import { usersTable, emailCredentialsTable, projectsTable, phasesTable, expensesTable, vendorsTable } from "../../../lib/db/src/schema/index";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
