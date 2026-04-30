@@ -86,7 +86,11 @@ export default function InventoryPage() {
   const filtered = useMemo(() => {
     if (!items) return []
     return items.filter(it => {
-      const matchSearch = !search || it.name.toLowerCase().includes(search.toLowerCase()) || (it.vendor ?? "").toLowerCase().includes(search.toLowerCase())
+      const q = search.toLowerCase()
+      const matchSearch =
+        !q ||
+        (it.name ?? "").toLowerCase().includes(q) ||
+        (it.vendor ?? "").toLowerCase().includes(q)
       const matchStock = filterStock === "all" || (filterStock === "low" && it.isLow) || (filterStock === "ok" && !it.isLow)
       return matchSearch && matchStock
     })

@@ -10,6 +10,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Users, Plus, Trash2, Phone, Briefcase, DollarSign, TrendingUp, Loader2, Pencil, Search, FileText } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useToast } from "@/hooks/use-toast"
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip as RTooltip,
+  ResponsiveContainer, Cell
+} from "recharts"
 
 const ROLES = ["laborer", "driver", "supervisor", "mason", "electrician", "plumber", "carpenter", "operator"] as const
 
@@ -127,14 +131,23 @@ export default function CrewPage() {
   const contractCount = activeCrew.filter(c => c.rateType === "contractual").length
 
   const chartData = useMemo(
-    () => (crew ?? []).filter(c => c.laborCost > 0).sort((a, b) => b.laborCost - a.laborCost).slice(0, 8).map(c => ({ name: c.name, cost: c.laborCost })),
+    () =>
+      (crew ?? [])
+        .filter(c => (c.laborCost ?? 0) > 0)
+        .sort((a, b) => (b.laborCost ?? 0) - (a.laborCost ?? 0))
+        .slice(0, 8)
+        .map(c => ({ name: c.name || "Unknown", cost: c.laborCost ?? 0 })),
     [crew]
   )
 
   const filtered = useMemo(() => {
     if (!crew) return []
     return crew.filter(c => {
-      const matchSearch = !search || c.name.toLowerCase().includes(search.toLowerCase()) || c.role.toLowerCase().includes(search.toLowerCase())
+      const q = search.toLowerCase()
+      const matchSearch =
+        !q ||
+        (c.name ?? "").toLowerCase().includes(q) ||
+        (c.role ?? "").toLowerCase().includes(q)
       const matchStatus = filterStatus === "all" || c.status === filterStatus
       return matchSearch && matchStatus
     })
@@ -326,7 +339,12 @@ export default function CrewPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs flex-shrink-0">
-                          {c.name.split(" ").map(p => p[0]).slice(0, 2).join("").toUpperCase()}
+                          {(c.name ?? "U")
+                            .split(" ")
+                            .map(p => p[0] ?? "")
+                            .slice(0, 2)
+                            .join("")
+                            .toUpperCase() || "U"}
                         </div>
                         <span className="font-semibold text-foreground">{c.name}</span>
                       </div>

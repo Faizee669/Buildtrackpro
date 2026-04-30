@@ -7,13 +7,26 @@ import { PersistedClient, Persister } from "@tanstack/react-query-persist-client
 export function createIDBPersister(idbValidKey: IDBValidKey = "reactQuery") {
   return {
     persistClient: async (client: PersistedClient) => {
-      await set(idbValidKey, client);
+      try {
+        await set(idbValidKey, client);
+      } catch (err) {
+        console.warn("Failed to persist React Query cache:", err);
+      }
     },
     restoreClient: async () => {
-      return await get<PersistedClient>(idbValidKey);
+      try {
+        return await get<PersistedClient>(idbValidKey);
+      } catch (err) {
+        console.warn("Failed to restore React Query cache:", err);
+        return undefined;
+      }
     },
     removeClient: async () => {
-      await del(idbValidKey);
+      try {
+        await del(idbValidKey);
+      } catch (err) {
+        console.warn("Failed to clear React Query cache:", err);
+      }
     },
   } as Persister;
 }

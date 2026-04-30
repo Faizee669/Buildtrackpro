@@ -1,4 +1,4 @@
-import { useRoute, Link } from "wouter"
+import { useRoute, Link, useLocation } from "wouter"
 import {
   useGetProject, useListExpenses, useUpdateProject, useDeleteProject,
   useListPhases, useCreatePhase, useUpdatePhase, useDeletePhase,
@@ -154,12 +154,13 @@ export default function ProjectDetails() {
     }
   })
 
+  const [, setLocation] = useLocation()
   const deleteProject = useDeleteProject({
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListProjectsQueryKey() })
         toast({ title: "Project deleted" })
-        window.location.href = "/projects"
+        setLocation("/projects")
       }
     }
   })
@@ -267,7 +268,11 @@ export default function ProjectDetails() {
     return expenses.filter(e => {
       const matchesCat = expenseCatFilter === "all" || e.category === expenseCatFilter
       const q = expenseSearch.toLowerCase()
-      const matchesSearch = !q || e.vendor?.toLowerCase().includes(q) || e.category.toLowerCase().includes(q) || e.description?.toLowerCase().includes(q)
+      const matchesSearch =
+        !q ||
+        (e.vendor ?? "").toLowerCase().includes(q) ||
+        (e.category ?? "").toLowerCase().includes(q) ||
+        (e.description ?? "").toLowerCase().includes(q)
       return matchesCat && matchesSearch
     })
   }, [expenses, expenseCatFilter, expenseSearch])

@@ -20,9 +20,13 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, "")
 function useAnalytics<T>(key: string, endpoint: string) {
   return useQuery<T>({
     queryKey: ["analytics", key],
-    queryFn: () =>
-      fetch(`${BASE}/api/${endpoint}`, { credentials: "include" }).then(r => r.json()),
+    queryFn: async () => {
+      const res = await fetch(`${BASE}/api/${endpoint}`, { credentials: "include" });
+      if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+      return res.json();
+    },
     staleTime: 60_000,
+    retry: 1,
   })
 }
 
@@ -111,13 +115,15 @@ export default function Analytics() {
   const { data: projects = [], isLoading: projLoading } = useAnalytics<ProjectHealth[]>("project-health", "analytics/project-health")
   const { data: radar = [], isLoading: radarLoading } = useAnalytics<RadarRow[]>("category-radar", "analytics/category-radar")
 
-  const dailyFormatted = daily.map(d => ({
+  const dailyList = Array.isArray(daily) ? daily : []
+  const dailyFormatted = dailyList.map(d => ({
     ...d,
     day: (() => { try { return format(parseISO(String(d.day)), "MMM d") } catch { return d.day } })(),
   }))
 
-  const radarMax = Math.max(...radar.map(r => r.total), 1)
-  const radarData = radar.map(r => ({ ...r, value: Math.round((r.total / radarMax) * 100) }))
+  const radarList = Array.isArray(radar) ? radar : []
+  const radarMax = Math.max(...radarList.map(r => r.total), 1)
+  const radarData = radarList.map(r => ({ ...r, value: Math.round((r.total / radarMax) * 100) }))
 
   const isAnyLoading = sumLoading || trendLoading || dailyLoading || dowLoading || projLoading || radarLoading
 
