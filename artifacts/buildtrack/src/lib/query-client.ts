@@ -1,5 +1,4 @@
 import { QueryClient } from "@tanstack/react-query";
-import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { get, set, del } from "idb-keyval";
 import { PersistedClient, Persister } from "@tanstack/react-query-persist-client";
 

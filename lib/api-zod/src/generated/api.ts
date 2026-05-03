@@ -35,42 +35,38 @@ export const GetCurrentAuthUserResponse = zod.object({
 });
 
 /**
- * @summary Start the browser OIDC login flow
+ * @summary Register a local account and start a session
  */
-export const BeginBrowserLoginQueryParams = zod.object({
-  returnTo: zod.coerce.string().optional(),
+
+export const RegisterWithEmailBody = zod.object({
+  email: zod.string().min(1),
+  password: zod.string().min(1),
+  firstName: zod.string().optional(),
+  lastName: zod.string().optional(),
+});
+
+export const RegisterWithEmailResponse = zod.object({
+  success: zod.boolean(),
 });
 
 /**
- * @summary Complete the browser OIDC login flow
+ * @summary Sign in with email and password
  */
-export const HandleBrowserLoginCallbackQueryParams = zod.object({
-  code: zod.coerce.string().optional(),
-  state: zod.coerce.string().optional(),
-  iss: zod.coerce.string().url().optional(),
+
+export const LoginWithEmailBody = zod.object({
+  email: zod.string().min(1),
+  password: zod.string().min(1),
+});
+
+export const LoginWithEmailResponse = zod.object({
+  success: zod.boolean(),
 });
 
 /**
- * @summary Clear the session and begin OIDC logout
+ * @summary Clear the session and redirect to app root
  */
 export const LogoutBrowserSessionHeader = zod.object({
   Authorization: zod.string().optional(),
-});
-
-/**
- * @summary Exchange a mobile OIDC code for a session token
- */
-
-export const ExchangeMobileAuthorizationCodeBody = zod.object({
-  code: zod.string().min(1),
-  code_verifier: zod.string().min(1),
-  redirect_uri: zod.string().url().min(1),
-  state: zod.string().min(1),
-  nonce: zod.string().min(1).optional(),
-});
-
-export const ExchangeMobileAuthorizationCodeResponse = zod.object({
-  token: zod.string(),
 });
 
 /**
@@ -83,6 +79,27 @@ export const LogoutMobileSessionHeader = zod.object({
 export const LogoutMobileSessionResponse = zod.object({
   success: zod.boolean(),
 });
+
+/**
+ * @summary List recent audit events for the current user
+ */
+export const ListAuditLogsQueryParams = zod.object({
+  limit: zod.coerce.number().optional(),
+});
+
+export const ListAuditLogsResponseItem = zod.object({
+  id: zod.number(),
+  userId: zod.string(),
+  action: zod.string(),
+  entityType: zod.string(),
+  entityId: zod.string().nullish(),
+  summary: zod.string(),
+  metadata: zod
+    .union([zod.record(zod.string(), zod.unknown()), zod.null()])
+    .optional(),
+  createdAt: zod.string(),
+});
+export const ListAuditLogsResponse = zod.array(ListAuditLogsResponseItem);
 
 /**
  * @summary List all projects
@@ -306,8 +323,7 @@ export const DeleteExpenseParams = zod.object({
  * @summary Upload a receipt image
  */
 export const UploadReceiptBody = zod.object({
-  // zod.instanceof(File) crashes Node.js — File is browser-only; validation handled by multer
-  file: zod.any().optional(),
+  file: zod.instanceof(File).optional(),
 });
 
 export const UploadReceiptResponse = zod.object({

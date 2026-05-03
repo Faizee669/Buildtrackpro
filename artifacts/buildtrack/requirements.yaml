@@ -13,4 +13,4 @@ images:
 
 notes:
   - Uses @workspace/api-client-react for all API interactions
-  - Relies on Replit Auth via /api/auth/me for authentication state
+  - Uses cookie-backed session auth via /api/auth/user for authentication state

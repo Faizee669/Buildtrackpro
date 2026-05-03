@@ -3,6 +3,7 @@ import {
   useGetProjectCards,
   useGetTopVendors,
   useGetAiInsights,
+  type GetProjectCardsQueryResult,
 } from "@workspace/api-client-react"
 import { useCurrency } from "@/lib/currency-context"
 import { Card, CardContent } from "@/components/ui/card"
@@ -33,7 +34,7 @@ import { QuickAddDialog } from "@/components/quick-add-dialog"
 import { CATEGORY_COLORS } from "@/lib/utils"
 import { OnboardingWizard } from "@/components/onboarding-wizard"
 
-type ProjectCard = NonNullable<ReturnType<typeof useGetProjectCards>["data"]>[number]
+type ProjectCard = GetProjectCardsQueryResult[number]
 type SortKey = "spend" | "status" | "name"
 
 const STATUS_RANK: Record<string, number> = {
@@ -288,7 +289,7 @@ export default function Dashboard() {
     data: aiInsights,
     isLoading: aiLoading,
     refetch: refetchAI,
-  } = useGetAiInsights({ query: { staleTime: 0, refetchOnMount: false, enabled: false } })
+  } = useGetAiInsights({ query: { queryKey: ["/api/ai-insights"], staleTime: 0, refetchOnMount: false, enabled: false } })
 
   const isLoading = statsLoading || cardsLoading
 

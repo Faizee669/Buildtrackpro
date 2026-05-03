@@ -33,25 +33,46 @@ export interface AuthUserEnvelope {
   user: AuthUser | null;
 }
 
-export interface MobileTokenExchangeRequest {
+export interface RegisterWithEmailBody {
   /** @minLength 1 */
-  code: string;
+  email: string;
   /** @minLength 1 */
-  code_verifier: string;
-  /** @minLength 1 */
-  redirect_uri: string;
-  /** @minLength 1 */
-  state: string;
-  /** @minLength 1 */
-  nonce?: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
 }
 
-export interface MobileTokenExchangeSuccess {
-  token: string;
+export interface RegisterWithEmailResponse {
+  success: boolean;
+}
+
+export interface LoginWithEmailBody {
+  /** @minLength 1 */
+  email: string;
+  /** @minLength 1 */
+  password: string;
+}
+
+export interface LoginWithEmailResponse {
+  success: boolean;
 }
 
 export interface LogoutSuccess {
   success: boolean;
+}
+
+export type AuditLogMetadata = { [key: string]: unknown } | null;
+
+export interface AuditLog {
+  id: number;
+  userId: string;
+  action: string;
+  entityType: string;
+  /** @nullable */
+  entityId?: string | null;
+  summary: string;
+  metadata?: AuditLogMetadata;
+  createdAt: string;
 }
 
 export type ProjectStatus = (typeof ProjectStatus)[keyof typeof ProjectStatus];
@@ -369,14 +390,8 @@ export interface AiInsightsResponse {
 
 export type AuthorizationSessionHeaderParameter = string;
 
-export type BeginBrowserLoginParams = {
-  returnTo?: string;
-};
-
-export type HandleBrowserLoginCallbackParams = {
-  code?: string;
-  state?: string;
-  iss?: string;
+export type ListAuditLogsParams = {
+  limit?: number;
 };
 
 export type ListExpensesParams = {

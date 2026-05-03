@@ -300,7 +300,7 @@ router.patch("/expenses/:id", requireAuth, async (req, res): Promise<void> => {
   const [updated] = await db
     .update(expensesTable)
     .set(updates)
-    .where(eq(expensesTable.id, params.data.id))
+    .where(and(eq(expensesTable.id, params.data.id), eq(expensesTable.projectId, ownedExpense.projectId)))
     .returning();
 
   if (!updated) { res.status(404).json({ error: "Expense not found" }); return; }
@@ -327,7 +327,9 @@ router.delete("/expenses/:id", requireAuth, async (req, res): Promise<void> => {
   const ownedExpense = await getOwnedExpense(params.data.id, req.user!.id);
   if (!ownedExpense) { res.status(404).json({ error: "Expense not found" }); return; }
 
-  const [deleted] = await db.delete(expensesTable).where(eq(expensesTable.id, params.data.id)).returning();
+  const [deleted] = await db.delete(expensesTable)
+    .where(and(eq(expensesTable.id, params.data.id), eq(expensesTable.projectId, ownedExpense.projectId)))
+    .returning();
   if (!deleted) { res.status(404).json({ error: "Expense not found" }); return; }
 
   await logAuditEvent({

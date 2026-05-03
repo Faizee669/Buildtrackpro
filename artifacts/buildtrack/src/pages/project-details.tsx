@@ -186,12 +186,13 @@ export default function ProjectDetails() {
     }
   })
 
-  const projectForm = useForm<z.infer<typeof projectSchema>>({
+  const projectForm = useForm({
     resolver: zodResolver(projectSchema),
     values: project ? {
       name: project.name,
       description: project.description || "",
       budget: project.budget,
+      estimatedRevenue: project.estimatedRevenue ?? 0,
       startDate: project.startDate,
       status: project.status as any,
     } : undefined,
@@ -272,7 +273,7 @@ export default function ProjectDetails() {
         !q ||
         (e.vendor ?? "").toLowerCase().includes(q) ||
         (e.category ?? "").toLowerCase().includes(q) ||
-        (e.description ?? "").toLowerCase().includes(q)
+        (e.notes ?? "").toLowerCase().includes(q)
       return matchesCat && matchesSearch
     })
   }, [expenses, expenseCatFilter, expenseSearch])
