@@ -56,7 +56,14 @@ function actionBadge(action: string) {
 }
 
 async function fetchAuditLogs(): Promise<AuditLog[]> {
-  const response = await fetch("/api/audit-logs?limit=300", { credentials: "include" });
+  const apiBase = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_BASE_URL) || "";
+  const sid = typeof window !== "undefined" ? localStorage.getItem("bt_sid") : null;
+  const headers: HeadersInit = { "Content-Type": "application/json" };
+  if (sid) headers["Authorization"] = `Bearer ${sid}`;
+  const response = await fetch(`${apiBase}/api/audit-logs?limit=300`, { 
+    credentials: "include",
+    headers
+  });
   if (!response.ok) throw new Error(`Failed to load activity log (${response.status})`);
   return response.json();
 }

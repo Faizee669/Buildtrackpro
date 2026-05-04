@@ -67,7 +67,8 @@ export default function SharePage() {
 
   useEffect(() => {
     if (!token) return
-    fetch(`/api/public/projects/${token}`)
+    const apiBase = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_BASE_URL) || "";
+    fetch(`${apiBase}/api/public/projects/${token}`)
       .then((r) => {
         if (!r.ok) throw new Error("not found")
         return r.json()

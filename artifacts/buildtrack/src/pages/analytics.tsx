@@ -20,7 +20,15 @@ function useAnalytics<T>(key: string, endpoint: string) {
   return useQuery<T>({
     queryKey: ["analytics", key],
     queryFn: async () => {
-      const res = await fetch(`/api/${endpoint}`, { credentials: "include" });
+      const apiBase = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_BASE_URL) || "";
+      const sid = typeof window !== "undefined" ? localStorage.getItem("bt_sid") : null;
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (sid) headers["Authorization"] = `Bearer ${sid}`;
+
+      const res = await fetch(`${apiBase}/api/${endpoint}`, { 
+        credentials: "include",
+        headers
+      });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body?.error ?? `Request failed (${res.status})`);

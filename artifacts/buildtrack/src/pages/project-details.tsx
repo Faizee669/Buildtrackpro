@@ -112,7 +112,16 @@ export default function ProjectDetails() {
   const handleGenerateShare = async () => {
     setShareLoading(true)
     try {
-      const res = await fetch(`/api/projects/${projectId}/share`, { method: "POST", credentials: "include" })
+      const apiBase = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_BASE_URL) || "";
+      const sid = typeof window !== "undefined" ? localStorage.getItem("bt_sid") : null;
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (sid) headers["Authorization"] = `Bearer ${sid}`;
+      
+      const res = await fetch(`${apiBase}/api/projects/${projectId}/share`, { 
+        method: "POST", 
+        credentials: "include",
+        headers 
+      })
       if (res.ok) {
         const data = await res.json()
         setShareToken(data.shareToken)
@@ -124,7 +133,16 @@ export default function ProjectDetails() {
   }
 
   const handleRevokeShare = async () => {
-    await fetch(`/api/projects/${projectId}/share`, { method: "DELETE", credentials: "include" })
+    const apiBase = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_BASE_URL) || "";
+    const sid = typeof window !== "undefined" ? localStorage.getItem("bt_sid") : null;
+    const headers: HeadersInit = { "Content-Type": "application/json" };
+    if (sid) headers["Authorization"] = `Bearer ${sid}`;
+    
+    await fetch(`${apiBase}/api/projects/${projectId}/share`, { 
+      method: "DELETE", 
+      credentials: "include",
+      headers 
+    })
     setShareToken(null)
     setShareOpen(false)
     toast({ title: "Share link revoked" })
