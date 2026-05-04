@@ -353,7 +353,7 @@ export function IndustrialBlueprint() {
                   {/* Cement 32% */}
                   <circle cx="50" cy="50" r="40" fill="none" stroke="url(#hatch-primary)" strokeWidth="15" strokeDasharray="251.2" strokeDashoffset={251.2 - (251.2 * 32) / 100} />
                   {/* Labour 24% */}
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="#0f172a" strokeWidth="15" strokeDasharray="251.2" strokeDashoffset={251.2 - (251.2 * 24) / 100} strokeDasharrayOffset={(251.2 * 32) / 100} className="origin-center rotate-[115deg]" />
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#0f172a" strokeWidth="15" strokeDasharray="251.2" strokeDashoffset={251.2 - (251.2 * 24) / 100} className="origin-center rotate-[115deg]" />
                   <circle cx="50" cy="50" r="40" fill="none" stroke="#0f172a" strokeWidth="1" strokeDasharray="2 4" />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center mono text-[10px] font-bold">

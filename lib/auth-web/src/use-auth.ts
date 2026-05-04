@@ -42,12 +42,23 @@ export function useAuth(): AuthState {
     window.location.href = "/";
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     // Immediately clear local cache so the UI updates without waiting for network
     queryClient.setQueryData(["authUser"], null);
-    if (typeof window !== "undefined") localStorage.removeItem("bt_sid");
-    const apiBase = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_BASE_URL) || "";
-    window.location.href = `${apiBase}/api/logout`;
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("bt_sid");
+      const apiBase = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_BASE_URL) || "";
+      // Fire and forget logout call with JSON acceptance, then redirect locally
+      try {
+        await fetch(`${apiBase}/api/logout`, { 
+          credentials: "include",
+          headers: { "Accept": "application/json" }
+        });
+      } catch (err) {
+        console.error("Logout API failed", err);
+      }
+      window.location.href = "/";
+    }
   }, [queryClient]);
 
   // isLoading: true while first fetch in flight OR while restoring from IDB cache OR while refetching after reload

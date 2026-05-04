@@ -227,8 +227,8 @@ export function SplitConsole() {
                       const isOverBudget = proj.spent > proj.budget;
                       const progress = Math.min((proj.spent / proj.budget) * 100, 100);
                       const formatRs = (num: number) => {
-                        if (num >= 10000000) return \`\${(num/10000000).toFixed(2)}Cr\`;
-                        return \`\${(num/100000).toFixed(2)}L\`;
+                        if (num >= 10000000) return `${(num/10000000).toFixed(2)}Cr`;
+                        return `${(num/100000).toFixed(2)}L`;
                       };
 
                       return (

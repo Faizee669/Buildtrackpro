@@ -160,6 +160,12 @@ router.get("/logout", async (req: Request, res: Response) => {
   const sid = getSessionId(req);
   await clearSession(res, sid);
 
+  // If it's an AJAX/fetch request, just return success
+  if (req.xhr || req.headers.accept?.includes("json")) {
+    res.json({ success: true });
+    return;
+  }
+
   const frontendUrl = process.env.FRONTEND_URL || "/";
   res.redirect(frontendUrl);
 });
