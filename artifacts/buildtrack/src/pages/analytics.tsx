@@ -3,6 +3,7 @@ import { useCurrency } from "@/lib/currency-context"
 import {
   Card, CardContent, CardHeader, CardTitle, CardDescription,
 } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   ComposedChart, Area, CartesianGrid, Legend,
@@ -11,18 +12,19 @@ import {
 } from "recharts"
 import {
   TrendingUp, DollarSign, Users, CalendarDays,
-  ReceiptText, AlertTriangle, CheckCircle2, Clock,
+  ReceiptText, AlertTriangle, CheckCircle2, Clock, RefreshCw, Loader2,
 } from "lucide-react"
 import { format, parseISO } from "date-fns"
-
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "")
 
 function useAnalytics<T>(key: string, endpoint: string) {
   return useQuery<T>({
     queryKey: ["analytics", key],
     queryFn: async () => {
-      const res = await fetch(`${BASE}/api/${endpoint}`, { credentials: "include" });
-      if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+      const res = await fetch(`/api/${endpoint}`, { credentials: "include" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error ?? `Request failed (${res.status})`);
+      }
       return res.json();
     },
     staleTime: 60_000,
@@ -47,17 +49,13 @@ interface Summary {
 }
 
 interface CategoryTrendRow { month: string; [cat: string]: string | number }
-
 interface DailyRow { day: string; total: number; count: number }
-
 interface DowRow { day: string; total: number; count: number }
-
 interface ProjectHealth {
   id: string; name: string; budget: number; spent: number;
   remaining: number; pctUsed: number; expenseCount: number;
   status: string; lastExpenseDate: string | null;
 }
-
 interface RadarRow { category: string; total: number }
 
 function StatCard({ icon: Icon, label, value, sub, color }:
@@ -98,6 +96,27 @@ function HealthBadge({ pct }: { pct: number }) {
   )
 }
 
+function ErrorPanel({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 py-10 text-center text-muted-foreground text-sm">
+      <AlertTriangle className="w-8 h-8 text-destructive/60" />
+      <p className="text-destructive font-medium">{message}</p>
+      <Button variant="outline" size="sm" onClick={onRetry} className="gap-2">
+        <RefreshCw className="w-3.5 h-3.5" /> Retry
+      </Button>
+    </div>
+  )
+}
+
+function LoadingPanel() {
+  return (
+    <div className="flex items-center justify-center gap-2 py-10 text-muted-foreground text-sm">
+      <Loader2 className="w-5 h-5 animate-spin" />
+      <span>Loading…</span>
+    </div>
+  )
+}
+
 export default function Analytics() {
   const { fmt } = useCurrency()
 
@@ -108,24 +127,39 @@ export default function Analytics() {
     return String(Math.round(v))
   }
 
-  const { data: summary, isLoading: sumLoading } = useAnalytics<Summary>("summary", "analytics/summary")
-  const { data: trend = [], isLoading: trendLoading } = useAnalytics<CategoryTrendRow[]>("category-trend", "analytics/category-trend")
-  const { data: daily = [], isLoading: dailyLoading } = useAnalytics<DailyRow[]>("daily-spending", "analytics/daily-spending")
-  const { data: dow = [], isLoading: dowLoading } = useAnalytics<DowRow[]>("dow-pattern", "analytics/dow-pattern")
-  const { data: projects = [], isLoading: projLoading } = useAnalytics<ProjectHealth[]>("project-health", "analytics/project-health")
-  const { data: radar = [], isLoading: radarLoading } = useAnalytics<RadarRow[]>("category-radar", "analytics/category-radar")
+  const summaryQ  = useAnalytics<Summary>("summary", "analytics/summary")
+  const trendQ    = useAnalytics<CategoryTrendRow[]>("category-trend", "analytics/category-trend")
+  const dailyQ    = useAnalytics<DailyRow[]>("daily-spending", "analytics/daily-spending")
+  const dowQ      = useAnalytics<DowRow[]>("dow-pattern", "analytics/dow-pattern")
+  const projectsQ = useAnalytics<ProjectHealth[]>("project-health", "analytics/project-health")
+  const radarQ    = useAnalytics<RadarRow[]>("category-radar", "analytics/category-radar")
 
-  const dailyList = Array.isArray(daily) ? daily : []
-  const dailyFormatted = dailyList.map(d => ({
+  const summary  = summaryQ.data
+  const trend    = Array.isArray(trendQ.data) ? trendQ.data : []
+  const daily    = Array.isArray(dailyQ.data) ? dailyQ.data : []
+  const dow      = Array.isArray(dowQ.data) ? dowQ.data : []
+  const projects = Array.isArray(projectsQ.data) ? projectsQ.data : []
+  const radar    = Array.isArray(radarQ.data) ? radarQ.data : []
+
+  const dailyFormatted = daily.map(d => ({
     ...d,
     day: (() => { try { return format(parseISO(String(d.day)), "MMM d") } catch { return d.day } })(),
   }))
 
-  const radarList = Array.isArray(radar) ? radar : []
-  const radarMax = Math.max(...radarList.map(r => r.total), 1)
-  const radarData = radarList.map(r => ({ ...r, value: Math.round((r.total / radarMax) * 100) }))
+  const radarMax  = Math.max(...radar.map(r => r.total), 1)
+  const radarData = radar.map(r => ({ ...r, value: Math.round((r.total / radarMax) * 100) }))
 
-  const isAnyLoading = sumLoading || trendLoading || dailyLoading || dowLoading || projLoading || radarLoading
+  const isAnyLoading = summaryQ.isLoading || trendQ.isLoading || dailyQ.isLoading ||
+                       dowQ.isLoading || projectsQ.isLoading || radarQ.isLoading
+
+  // Aggregate error from any query
+  const anyError = summaryQ.error || trendQ.error || dailyQ.error ||
+                   dowQ.error || projectsQ.error || radarQ.error
+
+  const refetchAll = () => {
+    summaryQ.refetch(); trendQ.refetch(); dailyQ.refetch()
+    dowQ.refetch(); projectsQ.refetch(); radarQ.refetch()
+  }
 
   return (
     <div className="space-y-6">
@@ -136,10 +170,28 @@ export default function Analytics() {
             Deep-dive into your spending patterns, project health, and budget trends
           </p>
         </div>
-        {isAnyLoading && (
-          <span className="text-xs text-muted-foreground animate-pulse flex-shrink-0">Loading…</span>
-        )}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isAnyLoading && (
+            <span className="text-xs text-muted-foreground animate-pulse">Loading…</span>
+          )}
+          <Button variant="outline" size="sm" onClick={refetchAll} className="gap-1.5 h-8">
+            <RefreshCw className="w-3.5 h-3.5" /> Refresh
+          </Button>
+        </div>
       </div>
+
+      {/* Global error banner */}
+      {anyError && !isAnyLoading && (
+        <div className="bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-3 text-sm text-destructive flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <span>
+            <strong>Data load error:</strong> {(anyError as Error).message}. Make sure both servers are running and you are logged in.
+          </span>
+          <Button variant="ghost" size="sm" onClick={refetchAll} className="ml-auto gap-1.5 h-7 text-destructive hover:text-destructive">
+            <RefreshCw className="w-3 h-3" /> Retry
+          </Button>
+        </div>
+      )}
 
       {/* Summary stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -182,8 +234,10 @@ export default function Analytics() {
             <CardDescription>How your spending composition changes month over month</CardDescription>
           </CardHeader>
           <CardContent>
-            {trend.length === 0 && !trendLoading ? (
-              <div className="h-56 flex items-center justify-center text-muted-foreground text-sm">No data yet</div>
+            {trendQ.isLoading ? <LoadingPanel /> :
+             trendQ.error ? <ErrorPanel message={(trendQ.error as Error).message} onRetry={trendQ.refetch} /> :
+             trend.length === 0 ? (
+              <div className="h-56 flex items-center justify-center text-muted-foreground text-sm">No expense data yet — add expenses to see trends</div>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={trend} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
@@ -210,7 +264,9 @@ export default function Analytics() {
             <CardDescription>Which days generate the most spend</CardDescription>
           </CardHeader>
           <CardContent>
-            {dow.length === 0 && !dowLoading ? (
+            {dowQ.isLoading ? <LoadingPanel /> :
+             dowQ.error ? <ErrorPanel message={(dowQ.error as Error).message} onRetry={dowQ.refetch} /> :
+             dow.length === 0 ? (
               <div className="h-56 flex items-center justify-center text-muted-foreground text-sm">No data yet</div>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
@@ -241,8 +297,10 @@ export default function Analytics() {
           <CardDescription>Transaction volume and spend per day to spot peaks and quiet periods</CardDescription>
         </CardHeader>
         <CardContent>
-          {dailyFormatted.length === 0 && !dailyLoading ? (
-            <div className="h-52 flex items-center justify-center text-muted-foreground text-sm">No data yet</div>
+          {dailyQ.isLoading ? <LoadingPanel /> :
+           dailyQ.error ? <ErrorPanel message={(dailyQ.error as Error).message} onRetry={dailyQ.refetch} /> :
+           dailyFormatted.length === 0 ? (
+            <div className="h-52 flex items-center justify-center text-muted-foreground text-sm">No expenses in the last 30 days</div>
           ) : (
             <ResponsiveContainer width="100%" height={210}>
               <ComposedChart data={dailyFormatted} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
@@ -276,7 +334,9 @@ export default function Analytics() {
             <CardDescription>Radar view of all-time spending balance across categories</CardDescription>
           </CardHeader>
           <CardContent>
-            {radarData.length === 0 && !radarLoading ? (
+            {radarQ.isLoading ? <LoadingPanel /> :
+             radarQ.error ? <ErrorPanel message={(radarQ.error as Error).message} onRetry={radarQ.refetch} /> :
+             radarData.length === 0 ? (
               <div className="h-56 flex items-center justify-center text-muted-foreground text-sm">No data yet</div>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
@@ -301,7 +361,9 @@ export default function Analytics() {
             <CardDescription>Current burn rate and remaining budget per project</CardDescription>
           </CardHeader>
           <CardContent>
-            {projects.length === 0 && !projLoading ? (
+            {projectsQ.isLoading ? <LoadingPanel /> :
+             projectsQ.error ? <ErrorPanel message={(projectsQ.error as Error).message} onRetry={projectsQ.refetch} /> :
+             projects.length === 0 ? (
               <div className="h-56 flex items-center justify-center text-muted-foreground text-sm">
                 No projects yet — create one to track budget health
               </div>
